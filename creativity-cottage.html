@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Creativity Cottage — GrAngel World</title>
+<style>
+  :root{
+    --sky-top:#bfe3ec; --sky-low:#e9f4ec;
+    --grass:#a9cf8f; --grass-dk:#8fbf78;
+    --wood:#b98a5e; --wood-dk:#8a6640;
+    --leaf:#7fb06a; --leaf-dk:#6a9a58;
+    --bloom-a:#e79ac0; --bloom-b:#b79ad6;
+    --wall:#fdf3e4; --wall-dk:#f2e2c9; --stone:#e6d3b3;
+    --roof-a:#f0a8c6; --roof-b:#c39ce0;
+    --heart:#e26d6d; --ink:#5b4a42; --panel:#fbf6ec;
+    --mortar:#dcc39c;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{ font-family:"Segoe UI",system-ui,sans-serif; color:var(--ink); background:var(--sky-low); overflow:hidden; }
+  #stage{ position:relative; width:100vw; height:100vh; overflow:hidden; animation:pagein .5s ease; }
+  @keyframes pagein{ from{ opacity:0; } to{ opacity:1; } }
+
+  .sky{ position:absolute; inset:0; background:linear-gradient(to bottom,var(--sky-top) 0%,var(--sky-low) 62%); }
+  .cloud{ position:absolute; top:8%; width:160px; height:52px; background:#fff; opacity:.75; border-radius:50px; filter:blur(1px); animation:drift 60s linear infinite; }
+  .cloud::before,.cloud::after{ content:""; position:absolute; background:#fff; border-radius:50%; }
+  .cloud::before{ width:70px; height:70px; top:-28px; left:24px; }
+  .cloud::after{ width:52px; height:52px; top:-18px; left:86px; }
+  .cloud.c2{ top:16%; transform:scale(.7); animation-duration:80s; animation-delay:-20s; opacity:.6; }
+  @keyframes drift{ from{ left:-200px; } to{ left:110vw; } }
+
+  .ground{ position:absolute; left:0; right:0; bottom:0; height:52%; background:linear-gradient(to bottom,var(--grass) 0%,var(--grass-dk) 100%); border-top-left-radius:40% 60px; border-top-right-radius:40% 60px; }
+  #cottagePath{ position:absolute; inset:0; pointer-events:none; }
+
+  .tree{ position:absolute; width:110px; height:140px; }
+  .tree .trunk{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:18px; height:52px; background:var(--wood); border-radius:6px; }
+  .tree .canopy{ position:absolute; top:0; left:50%; transform:translateX(-50%); width:110px; height:100px; background:radial-gradient(circle at 40% 35%,var(--leaf) 0%,var(--leaf-dk) 100%); border-radius:50% 50% 46% 46%; box-shadow:inset -8px -6px 0 rgba(0,0,0,.06); }
+  .tree.t1{ left:5%; bottom:38%; transform:scale(1.05); }
+
+  .flowers{ position:absolute; display:flex; gap:6px; }
+  .flower{ width:12px; height:12px; border-radius:50%; position:relative; }
+  .flower::after{ content:""; position:absolute; left:4px; top:12px; width:3px; height:14px; background:var(--leaf-dk); border-radius:2px; }
+  .f-a{ background:var(--bloom-a); } .f-b{ background:var(--bloom-b); } .f-c{ background:#e7c877; }
+  .flowers.fl1{ left:12%; bottom:16%; } .flowers.fl2{ right:14%; bottom:14%; } .flowers.fl3{ left:30%; bottom:10%; }
+
+  /* ---- The Cottage: cozy, storybook-cute, and the clear centerpiece ---- */
+  #cottage{ position:absolute; left:50%; bottom:36%; transform:translateX(-50%); width:300px; height:260px; cursor:pointer; transition:transform .25s ease; z-index:6; }
+  #cottage:hover, #cottage.near{ transform:translateX(-50%) translateY(-6px); }
+
+  /* A plain, unclipped rectangle covering the whole building (including the roof's
+     overhang) sitting above every decorative shape. The roof itself uses clip-path
+     for its triangular silhouette, and clip-path also cuts hit-testing — so without
+     this, clicking near the eaves/corners (exactly where people naturally click)
+     could silently miss. This guarantees the entire cottage is reliably clickable. */
+  #cottageHit{ position:absolute; left:-40px; right:-40px; top:-4px; bottom:-4px; z-index:20; cursor:pointer; }
+
+  #cottage .chimney{ position:absolute; top:14px; right:64px; width:26px; height:46px; background:var(--wood-dk); border-radius:3px; }
+  #cottage .chimney::before{ content:""; position:absolute; top:-5px; left:-4px; right:-4px; height:8px; background:var(--wood-dk); border-radius:3px; }
+  #cottage .smoke{ position:absolute; top:-8px; left:5px; width:12px; height:12px; border-radius:50%; background:rgba(255,255,255,.8); opacity:0; }
+  #cottage .smoke.s1{ animation:smoke 4s ease-in infinite; }
+  #cottage .smoke.s2{ animation:smoke 4s ease-in infinite 1.3s; }
+  #cottage .smoke.s3{ animation:smoke 4s ease-in infinite 2.6s; }
+  @keyframes smoke{ 0%{ opacity:0; transform:translate(0,0) scale(.6); } 15%{ opacity:.7; } 100%{ opacity:0; transform:translate(14px,-56px) scale(1.5); } }
+
+  /* Roof: a soft, gently-sloped triangle (rounded peak + rounded eaves) rather than a spike */
+  #cottage .roof{ position:absolute; top:0; left:-30px; width:360px; height:118px; background:linear-gradient(160deg,var(--roof-a) 0%,var(--roof-b) 100%); clip-path:polygon(50% 4%,97% 92%,86% 100%,14% 100%,3% 92%); }
+  #cottage .roof::after{ content:""; position:absolute; left:50%; bottom:8px; transform:translateX(-50%); width:8px; height:8px; border-radius:50%; background:#fff8; }
+  #cottage .fascia{ position:absolute; top:104px; left:-14px; width:328px; height:14px; background:var(--wood-dk); border-radius:7px; box-shadow:0 3px 0 rgba(0,0,0,.08); }
+
+  #cottage .body{ position:absolute; top:112px; left:14px; width:272px; height:130px; background:var(--wall); border-radius:0 0 20px 20px; box-shadow:inset 0 -10px 0 var(--wall-dk); }
+  #cottage .foundation{ position:absolute; bottom:0; left:14px; width:272px; height:16px; background:var(--stone); border-radius:0 0 10px 10px; box-shadow:inset 0 2px 0 rgba(255,255,255,.4); }
+
+  #cottage .window{ position:absolute; top:150px; width:46px; height:46px; border-radius:50%; background:var(--sky-top); border:5px solid var(--wood); box-shadow:inset 0 0 0 3px #fff; }
+  #cottage .window::before, #cottage .window::after{ content:""; position:absolute; background:var(--wood); }
+  #cottage .window::before{ left:50%; top:0; bottom:0; width:3px; transform:translateX(-50%); }
+  #cottage .window::after{ top:50%; left:0; right:0; height:3px; transform:translateY(-50%); }
+  #cottage .window.wL{ left:40px; }
+  #cottage .window.wR{ right:40px; }
+
+  #cottage .flowerbox{ position:absolute; top:197px; width:58px; height:14px; background:var(--wood-dk); border-radius:3px; display:flex; align-items:flex-end; justify-content:center; gap:3px; padding-bottom:3px; }
+  #cottage .flowerbox.fbL{ left:33px; } #cottage .flowerbox.fbR{ right:33px; }
+  #cottage .flowerbox .flower{ width:9px; height:9px; }
+  #cottage .flowerbox .flower::after{ display:none; }
+
+  #cottage .door{ position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:62px; height:96px; background:linear-gradient(180deg,var(--wood) 0%,var(--wood-dk) 100%); border-radius:32px 32px 0 0; box-shadow:inset 0 0 0 3px rgba(255,255,255,.1); }
+  #cottage .door::after{ content:""; position:absolute; right:9px; top:46px; width:6px; height:6px; border-radius:50%; background:#f2d9a8; }
+  #cottage .door .heart{ position:absolute; left:50%; top:16px; transform:translateX(-50%) rotate(45deg); width:11px; height:11px; background:var(--roof-a); }
+  #cottage .door .heart::before,#cottage .door .heart::after{ content:""; position:absolute; width:11px; height:11px; background:var(--roof-a); border-radius:50%; }
+  #cottage .door .heart::before{ top:-5.5px; left:0; } #cottage .door .heart::after{ left:-5.5px; top:0; }
+
+  /* A climbing vine along one side, for a storybook touch */
+  #cottage .vine{ position:absolute; top:112px; left:8px; width:14px; height:130px; }
+  #cottage .vine::before{ content:""; position:absolute; inset:0; border-left:3px solid var(--leaf-dk); border-radius:0 0 0 10px; }
+  #cottage .vine .leaf{ position:absolute; width:11px; height:11px; border-radius:50% 50% 50% 0; background:var(--leaf); }
+  #cottage .vine .leaf:nth-child(1){ top:14px; left:0; transform:rotate(20deg); }
+  #cottage .vine .leaf:nth-child(2){ top:42px; left:4px; transform:rotate(-25deg); }
+  #cottage .vine .leaf:nth-child(3){ top:70px; left:0; transform:rotate(15deg); }
+  #cottage .vine .leaf:nth-child(4){ top:98px; left:4px; transform:rotate(-10deg); }
+
+  #cottage .easel{ position:absolute; bottom:0; right:-58px; width:56px; height:90px; }
+  #cottage .easel .leg{ position:absolute; bottom:0; width:6px; height:64px; background:var(--wood-dk); }
+  #cottage .easel .leg.l1{ left:6px; transform:rotate(10deg); transform-origin:bottom; }
+  #cottage .easel .leg.l2{ right:6px; transform:rotate(-10deg); transform-origin:bottom; }
+  #cottage .easel .canvas{ position:absolute; bottom:34px; left:2px; width:48px; height:40px; background:#fff; border:4px solid var(--wood-dk); border-radius:3px; }
+  #cottage .easel .canvas span{ position:absolute; width:12px; height:12px; border-radius:50%; opacity:.85; }
+  #cottage .easel .canvas span:nth-child(1){ background:var(--bloom-a); top:5px; left:5px; }
+  #cottage .easel .canvas span:nth-child(2){ background:var(--bloom-b); top:14px; left:20px; }
+  #cottage .easel .canvas span:nth-child(3){ background:#e7c877; top:20px; left:6px; }
+
+  /* Rustic signpost, planted in the grass clearly in front of the cottage (not tucked
+     against the wall, and never behind it — z-index guarantees that regardless of
+     DOM order, since the cottage itself sets none). */
+  #signpost{ position:absolute; left:50%; bottom:21%; transform:translateX(-150px); width:12px; height:70px; z-index:6; }
+  #signpost .post{ position:absolute; bottom:0; left:0; width:10px; height:100%; background:var(--wood-dk); border-radius:3px; }
+  #signpost .plank{ position:absolute; top:2px; left:-4px; transform:rotate(-4deg); background:var(--wood); color:#fff8ec; font-weight:700; font-size:14.5px; padding:8px 14px; border-radius:5px; box-shadow:0 4px 8px rgba(0,0,0,.18); white-space:nowrap; display:flex; align-items:center; gap:6px; }
+  #signpost .plank::before, #signpost .plank::after{ content:""; position:absolute; top:50%; width:10px; height:3px; background:var(--wood-dk); }
+  #signpost .plank::before{ left:-9px; } #signpost .plank::after{ right:-9px; }
+
+  #enterHint{ position:absolute; left:50%; bottom:calc(36% + 292px); transform:translateX(-50%) translateY(6px); background:var(--panel); color:var(--ink); padding:8px 16px; border-radius:14px; font-size:14px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.15); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap; z-index:21; }
+  #enterHint.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* This wrapper spans the whole stage (so its transform can move everything inside
+     together) — pointer-events:none keeps that invisible full-screen box from
+     swallowing clicks meant for things underneath it; grangel opts back in below. */
+  #grangelGroup{ position:absolute; inset:0; z-index:25; pointer-events:none; }
+  #grangel{ position:absolute; left:20%; bottom:60%; width:100px; height:110px; object-fit:contain; animation:hover 4s ease-in-out infinite; cursor:pointer; filter:drop-shadow(0 10px 8px rgba(0,0,0,.15)); z-index:5; pointer-events:auto; }
+  @keyframes hover{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-14px); } }
+  #grangel-shadow{ position:absolute; left:20%; bottom:58%; width:64px; height:14px; margin-left:18px; background:rgba(0,0,0,.18); border-radius:50%; filter:blur(3px); animation:shadowpulse 4s ease-in-out infinite; z-index:4; }
+  @keyframes shadowpulse{ 0%,100%{ transform:scale(1); opacity:.35; } 50%{ transform:scale(.8); opacity:.22; } }
+
+  #bubble{ position:absolute; left:26%; bottom:76%; background:var(--panel); color:var(--ink); padding:10px 14px; border-radius:16px; font-size:15px; max-width:220px; box-shadow:0 6px 14px rgba(0,0,0,.12); opacity:0; transform:translateY(6px) scale(.96); transition:opacity .3s ease,transform .3s ease; pointer-events:none; z-index:6; }
+  #bubble.show{ opacity:1; transform:translateY(0) scale(1); }
+  #bubble::after{ content:""; position:absolute; left:22px; bottom:-8px; border:8px solid transparent; border-top-color:var(--panel); }
+
+  #player{ position:absolute; width:60px; height:90px; object-fit:contain; display:none; z-index:8; filter:drop-shadow(0 6px 6px rgba(0,0,0,.25)); user-select:none; }
+  #player.active{ display:flex; }
+  #player-shadow{ position:absolute; width:44px; height:12px; background:rgba(0,0,0,.18); border-radius:50%; filter:blur(2px); z-index:7; display:none; }
+  #player-shadow.active{ display:block; }
+
+  #backBtn{ position:absolute; top:18px; left:18px; z-index:20; background:var(--panel); border:none; color:var(--ink); height:44px; padding:0 16px; border-radius:14px; font-size:15px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); display:flex; align-items:center; gap:6px; text-decoration:none; }
+
+  #roadPrompt{ position:absolute; transform:translate(-50%,-100%); background:var(--heart); color:#fff; border:none; font-weight:700; font-size:14.5px; padding:10px 18px; border-radius:999px; box-shadow:0 6px 14px rgba(0,0,0,.2); cursor:pointer; opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; white-space:nowrap; z-index:12; }
+  #roadPrompt.show{ opacity:1; pointer-events:auto; transform:translate(-50%,calc(-100% - 8px)); }
+  #roadPrompt:hover{ transform:translate(-50%,calc(-100% - 12px)); }
+
+
+  body.reduced .cloud, body.reduced #grangel, body.reduced .smoke{ animation:none; }
+  body.reduced #grangel-shadow{ animation:none; opacity:.28; }
+
+  @media (max-width:720px){
+    #cottage{ width:230px; height:200px; }
+    #cottage .roof{ width:280px; height:92px; left:-25px; }
+    #cottage .fascia{ top:80px; width:256px; left:-13px; }
+    #cottage .body{ top:88px; width:210px; }
+    #cottage .foundation{ width:210px; }
+    #cottage .window{ width:36px; height:36px; top:118px; }
+    #cottage .window.wL{ left:26px; } #cottage .window.wR{ right:26px; }
+    #cottage .flowerbox{ top:154px; width:44px; }
+    #cottage .flowerbox.fbL{ left:19px; } #cottage .flowerbox.fbR{ right:19px; }
+    #cottage .door{ width:48px; height:76px; }
+    #cottage .easel{ display:none; }
+    #cottage .vine{ display:none; }
+    #signpost{ transform:translateX(-100px); }
+    #enterHint{ bottom:calc(36% + 226px); }
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div class="sky"></div>
+    <div class="cloud c1"></div><div class="cloud c2"></div>
+    <div class="ground"></div>
+    <svg id="cottagePath"></svg>
+
+    <div class="tree t1"><div class="canopy"></div><div class="trunk"></div></div>
+    <div class="flowers fl1"><span class="flower f-a"></span><span class="flower f-c"></span><span class="flower f-b"></span></div>
+    <div class="flowers fl2"><span class="flower f-b"></span><span class="flower f-a"></span></div>
+    <div class="flowers fl3"><span class="flower f-c"></span><span class="flower f-a"></span><span class="flower f-b"></span></div>
+
+    <div id="enterHint">✨ Click the cottage to go inside</div>
+
+    <div id="signpost">
+      <div class="post"></div>
+      <div class="plank">🎨 Creativity Cottage</div>
+    </div>
+
+    <div id="cottage" role="button" tabindex="0" aria-label="Creativity Cottage — click to go inside">
+      <div class="chimney"><span class="smoke s1"></span><span class="smoke s2"></span><span class="smoke s3"></span></div>
+      <div class="roof"></div>
+      <div class="fascia"></div>
+      <div class="body"></div>
+      <div class="foundation"></div>
+      <div class="vine"><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span></div>
+      <div class="flowerbox fbL"><span class="flower f-a"></span><span class="flower f-c"></span><span class="flower f-b"></span></div>
+      <div class="flowerbox fbR"><span class="flower f-b"></span><span class="flower f-a"></span><span class="flower f-c"></span></div>
+      <div class="window wL"></div>
+      <div class="window wR"></div>
+      <div class="door"><span class="heart"></span></div>
+      <div class="easel">
+        <div class="leg l1"></div><div class="leg l2"></div>
+        <div class="canvas"><span></span><span></span><span></span></div>
+      </div>
+      <div id="cottageHit"></div>
+    </div>
+
+    <div id="grangelGroup">
+      <div id="grangel-shadow"></div>
+      <img id="grangel" src="gram_grangel.png" alt="GrAngel, a friendly waving heart" />
+      <div id="bubble">Ooh, I love it here! 🎨</div>
+    </div>
+
+    <div id="player-shadow"></div>
+    <img id="player" alt="Your character" />
+
+    <button id="roadPrompt">🏠 Back to Village →</button>
+
+    <a href="index.html" id="backBtn">← Back to Village</a>
+  </div>
+
+<script>
+  const stage=document.getElementById('stage');
+  const cottage=document.getElementById('cottage');
+  const enterHint=document.getElementById('enterHint');
+  const grangel=document.getElementById('grangel');
+  const bubble=document.getElementById('bubble');
+
+  function greet(){ bubble.classList.add('show'); clearTimeout(greet._t); greet._t=setTimeout(()=>bubble.classList.remove('show'),2600); }
+  grangel.addEventListener('click',greet);
+  grangel.setAttribute('tabindex','0');
+  grangel.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') greet(); });
+
+  function enterCottage(){ window.location.href='creativity-cottage-inside.html'; }
+  cottage.addEventListener('click', enterCottage);
+  cottage.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') enterCottage(); });
+
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+
+  /* ============================================================
+     BRICK PATH — same construction as the village page: a solid
+     mortar ribbon with real bricks in a running-bond pattern, sized
+     by depthScale(y) so it recedes at an angle instead of reading
+     as a flat top-down strip. One path only, entering from off the
+     right edge and ending at the cottage's doorstep.
+     ============================================================ */
+  const SVGNS='http://www.w3.org/2000/svg';
+  const cottagePath=document.getElementById('cottagePath');
+  const MORTAR='#dcc39c';
+  const BRICK_TONES=['#c98d84','#b97a68','#c0806f'];
+
+  function depthScale(y, h){
+    const horizon=h*0.46, near=h*1.0;
+    const t=Math.max(0, Math.min(1, (y-horizon)/(near-horizon)));
+    return 0.42 + 0.58*t;
+  }
+  function quadPoint(p0,p1,p2,t){ const it=1-t; return { x: it*it*p0.x+2*it*t*p1.x+t*t*p2.x, y: it*it*p0.y+2*it*t*p1.y+t*t*p2.y }; }
+  function quadTangent(p0,p1,p2,t){
+    const it=1-t;
+    const dx=2*it*(p1.x-p0.x)+2*t*(p2.x-p1.x);
+    const dy=2*it*(p1.y-p0.y)+2*t*(p2.y-p1.y);
+    const len=Math.hypot(dx,dy)||1;
+    return { x:dx/len, y:dy/len };
+  }
+
+  let pathSamples=null; // shared with player spawn/positioning below
+  let roadSeed=0;
+
+  function buildRoad(svg, start, end, bowSign, h){
+    const dx=end.x-start.x, dy=end.y-start.y;
+    const dist=Math.hypot(dx,dy);
+    const nx=-dy/dist, ny=dx/dist;
+    const amp=dist*0.10*bowSign;
+    const ctrl={ x:(start.x+end.x)/2+nx*amp, y:(start.y+end.y)/2+ny*amp };
+
+    const ROAD_W_BASE=80;
+    const SAMPLES=Math.max(30, Math.round(dist/14));
+    const centre=[], tangent=[], scale=[];
+    for(let i=0;i<=SAMPLES;i++){
+      const t=i/SAMPLES;
+      const c=quadPoint(start,ctrl,end,t);
+      centre.push(c); tangent.push(quadTangent(start,ctrl,end,t)); scale.push(depthScale(c.y,h));
+    }
+    const arc=[0];
+    for(let i=1;i<centre.length;i++) arc.push(arc[i-1]+Math.hypot(centre[i].x-centre[i-1].x, centre[i].y-centre[i-1].y));
+    const totalLen=arc[arc.length-1];
+
+    const left=[], right=[];
+    centre.forEach((c,i)=>{
+      const tg=tangent[i], half=(ROAD_W_BASE*scale[i])/2;
+      const nX=-tg.y, nY=tg.x;
+      left.push({ x:c.x+nX*half, y:c.y+nY*half });
+      right.push({ x:c.x-nX*half, y:c.y-nY*half });
+    });
+    let d=`M ${left[0].x},${left[0].y} `;
+    left.slice(1).forEach(p=>d+=`L ${p.x},${p.y} `);
+    right.slice().reverse().forEach(p=>d+=`L ${p.x},${p.y} `);
+    d+='Z';
+
+    const clipId=`cp-clip-${roadSeed++}`;
+    const clipPath=document.createElementNS(SVGNS,'clipPath');
+    clipPath.setAttribute('id',clipId);
+    const clipShape=document.createElementNS(SVGNS,'path');
+    clipShape.setAttribute('d',d);
+    clipPath.appendChild(clipShape);
+    svg.appendChild(clipPath);
+
+    const group=document.createElementNS(SVGNS,'g');
+    group.setAttribute('clip-path',`url(#${clipId})`);
+    const ribbon=document.createElementNS(SVGNS,'path');
+    ribbon.setAttribute('d',d); ribbon.setAttribute('fill',MORTAR);
+    group.appendChild(ribbon);
+
+    const BRICK_LEN_BASE=42, GAP=4, laneCount=2;
+    let rowIndex=0, coveredLen=0, tone=0;
+    while(coveredLen < totalLen+BRICK_LEN_BASE){
+      const stagger=(rowIndex%2===0)?0:BRICK_LEN_BASE/2;
+      const s=Math.max(0, Math.min(totalLen, coveredLen+BRICK_LEN_BASE/2-stagger));
+      let idx=0; while(idx<arc.length-1 && arc[idx]<s) idx++;
+      const c=centre[idx], tg=tangent[idx], sc=scale[idx];
+      const angle=Math.atan2(tg.y,tg.x)*180/Math.PI;
+      const nX=-tg.y, nY=tg.x;
+      const roadW=ROAD_W_BASE*sc, half=roadW/2;
+      const laneW=(roadW-GAP*(laneCount+1))/laneCount;
+      const brickLen=BRICK_LEN_BASE*sc;
+      for(let lane=0; lane<laneCount; lane++){
+        const laneOffset=-half+GAP+laneW/2+lane*(laneW+GAP);
+        const bx=c.x+nX*laneOffset, by=c.y+nY*laneOffset;
+        const rect=document.createElementNS(SVGNS,'rect');
+        rect.setAttribute('x', -(brickLen-GAP)/2);
+        rect.setAttribute('y', -(laneW-GAP)/2);
+        rect.setAttribute('width', Math.max(2,brickLen-GAP));
+        rect.setAttribute('height', Math.max(2,laneW-GAP));
+        rect.setAttribute('rx', 3);
+        rect.setAttribute('fill', BRICK_TONES[tone%BRICK_TONES.length]);
+        rect.setAttribute('stroke','rgba(90,58,40,.25)');
+        rect.setAttribute('stroke-width','1');
+        rect.setAttribute('transform', `translate(${bx},${by}) rotate(${angle})`);
+        group.appendChild(rect);
+        tone++;
+      }
+      coveredLen += BRICK_LEN_BASE;
+      rowIndex++;
+    }
+    svg.appendChild(group);
+    return { start, ctrl, end };
+  }
+
+  let ARRIVE_EXIT=null, DEPART_EXIT=null; // real on-screen pixel points, for the road-end prompts below
+
+  function buildCottagePath(){
+    const w=window.innerWidth, h=window.innerHeight;
+    cottagePath.setAttribute('width', w);
+    cottagePath.setAttribute('height', h);
+    cottagePath.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    cottagePath.innerHTML='';
+    roadSeed=0;
+    // Right edge (off-screen) to the cottage doorstep — the road the player walks in on,
+    // and also walks back out on to return to the village.
+    const junction={ x:w*0.5, y:h*0.635 };
+    const arriveStart={ x:w+40, y:h*0.90 };
+    pathSamples=buildRoad(cottagePath, arriveStart, junction, -1, h);
+    ARRIVE_EXIT={ x:arriveStart.x, y:arriveStart.y };
+    // From the same doorstep, the road continues onward off the left edge, toward the next place.
+    const departEnd={ x:-40, y:h*0.86 };
+    buildRoad(cottagePath, junction, departEnd, 1, h);
+    DEPART_EXIT={ x:departEnd.x, y:departEnd.y };
+  }
+  buildCottagePath();
+  let cpResizeTimer;
+  window.addEventListener('resize', ()=>{ clearTimeout(cpResizeTimer); cpResizeTimer=setTimeout(()=>{ buildCottagePath(); placePlayer(); },150); });
+
+  /* ============================================================
+     PLAYABLE CHARACTER — same boy/girl choice made on the village
+     page carries over here (read from localStorage); W A S D moves.
+     Spawns on the right side of the brick path, as if just arriving.
+     ============================================================ */
+  const CHAR_SRC={ boy:'boy.png', girl:'girl.png' };
+  const player=document.getElementById('player');
+  const playerShadow=document.getElementById('player-shadow');
+
+  const px={ x:0, y:0 };
+  function spawnOnPath(){
+    const t=0.14; // near the right-hand start of the road
+    const it=1-t;
+    const p=pathSamples;
+    px.x = it*it*p.start.x + 2*it*t*p.ctrl.x + t*t*p.end.x;
+    px.y = it*it*p.start.y + 2*it*t*p.ctrl.y + t*t*p.end.y;
+  }
+  spawnOnPath();
+
+  function groundBounds(){
+    return { minX:30, maxX:window.innerWidth-30, minY:window.innerHeight*0.5, maxY:window.innerHeight-24 };
+  }
+  function placePlayer(){
+    player.style.left=(px.x-30)+'px'; player.style.top=(px.y-45)+'px';
+    playerShadow.style.left=(px.x-22)+'px'; playerShadow.style.top=(px.y+38)+'px';
+  }
+  function activatePlayer(kind){
+    player.src=CHAR_SRC[kind]||CHAR_SRC.boy;
+    player.classList.add('active'); playerShadow.classList.add('active');
+    player.style.transform='scaleX(-1)'; // facing left, toward the cottage, on spawn
+    placePlayer();
+  }
+  const savedChar=localStorage.getItem('grangelChar');
+  activatePlayer(savedChar && CHAR_SRC[savedChar] ? savedChar : 'boy');
+
+  const keys=new Set();
+  window.addEventListener('keydown', e=>{
+    const k=e.key.toLowerCase();
+    if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){ keys.add(k); e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e=>{ keys.delete(e.key.toLowerCase()); });
+
+  // GrAngel tags along, always computed directly from the player's CURRENT (already-
+  // clamped) position rather than accumulated deltas — accumulation was the earlier
+  // bug: it kept nudging GrAngel by the intended movement even on frames where the
+  // player was stuck at a wall and hadn't actually moved, so they'd drift apart.
+  const grangelGroup=document.getElementById('grangelGroup');
+  const GRANGEL_GAP={ x:-70, y:-70 }; // ~1 inch, diagonally up-left of the character
+  let grangelHome=null;
+  function updateGrangelPosition(){
+    grangelGroup.style.transform=`translate(${px.x+GRANGEL_GAP.x-grangelHome.x}px, ${px.y+GRANGEL_GAP.y-grangelHome.y}px)`;
+  }
+  function captureGrangelHome(){
+    const r=grangel.getBoundingClientRect();
+    grangelHome={ x:r.left+r.width/2, y:r.top+r.height/2 };
+    updateGrangelPosition();
+  }
+  captureGrangelHome();
+
+  const SPEED=4;
+  function updateCottageProximity(){
+    const cr=cottage.getBoundingClientRect();
+    const cx=cr.left+cr.width/2, cy=cr.top+cr.height*0.8;
+    const dist=Math.hypot(px.x-cx, px.y-cy);
+    const near=dist<180;
+    cottage.classList.toggle('near', near);
+    enterHint.classList.toggle('show', near);
+  }
+  updateCottageProximity();
+
+  // Reaching the road's right-hand end (where the player spawns) offers a way back to the
+  // village — mirrors the prompt the village page shows at the end of its Creativity path.
+  const roadPrompt=document.getElementById('roadPrompt');
+  function updateRoadPrompt(){
+    const dist=Math.hypot(px.x-ARRIVE_EXIT.x, px.y-ARRIVE_EXIT.y);
+    if(dist<110){
+      // Anchor to the PLAYER's position, not the road's raw endpoint — that endpoint is
+      // deliberately off-screen (it's where the road enters the viewport from the right),
+      // so centering the button there was cutting it in half at the edge of the screen.
+      roadPrompt.style.left=Math.min(window.innerWidth-170,Math.max(170,px.x))+'px';
+      roadPrompt.style.top=Math.max(60,px.y-50)+'px';
+      roadPrompt.classList.add('show');
+    } else {
+      roadPrompt.classList.remove('show');
+    }
+  }
+  roadPrompt.addEventListener('click', ()=>{ window.location.href='index.html'; });
+  updateRoadPrompt();
+
+  function tick(){
+    if(player.classList.contains('active')){
+      let dx=0, dy=0;
+      if(keys.has('w')||keys.has('arrowup')) dy-=1;
+      if(keys.has('s')||keys.has('arrowdown')) dy+=1;
+      if(keys.has('a')||keys.has('arrowleft')){ dx-=1; player.style.transform='scaleX(-1)'; }
+      if(keys.has('d')||keys.has('arrowright')){ dx+=1; player.style.transform='scaleX(1)'; }
+      if(dx||dy){
+        const len=Math.hypot(dx,dy)||1;
+        const b=groundBounds();
+        px.x=Math.min(b.maxX,Math.max(b.minX, px.x+(dx/len)*SPEED));
+        px.y=Math.min(b.maxY,Math.max(b.minY, px.y+(dy/len)*SPEED));
+        placePlayer();
+        updateCottageProximity();
+        updateRoadPrompt();
+        updateGrangelPosition();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>

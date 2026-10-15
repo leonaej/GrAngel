@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GrAngel World — Map</title>
+<style>
+  :root{
+    --heart:#e26d6d; --ink:#5b4a42; --panel:#fbf6ec;
+    --map-bg:#eadfc4; --map-bg2:#e0d2b0; --map-line:#b89b6b; --map-ink:#5b4a34;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{ font-family:"Segoe UI",system-ui,sans-serif; color:var(--map-ink); overflow:hidden; }
+  #mapView{ position:absolute; inset:0; animation:fadein .45s ease; }
+  @keyframes fadein{ from{ opacity:0; } to{ opacity:1; } }
+
+  .map-parchment{ position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 30% 25%, rgba(255,255,255,.35) 0%, transparent 40%),
+      radial-gradient(circle at 75% 70%, rgba(120,90,50,.18) 0%, transparent 45%),
+      linear-gradient(135deg, var(--map-bg) 0%, var(--map-bg2) 100%); }
+  .map-vignette{ position:absolute; inset:0; box-shadow:inset 0 0 160px rgba(90,65,35,.45); pointer-events:none; }
+
+  #mapTitle{ position:absolute; top:20px; left:50%; transform:translateX(-50%); font-size:26px; font-weight:700; color:var(--map-ink); letter-spacing:1px; text-align:center; z-index:2; text-shadow:0 1px 0 rgba(255,255,255,.4); }
+  #mapTitle small{ display:block; font-size:13px; font-weight:400; opacity:.7; letter-spacing:0; }
+
+  /* Back to village link, styled like a button */
+  #backBtn{ position:absolute; top:18px; left:18px; z-index:5; background:var(--panel); border:none; color:var(--ink); height:44px; padding:0 16px; border-radius:14px; font-size:15px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); display:flex; align-items:center; gap:6px; text-decoration:none; }
+  #backBtn:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+
+  #markers{ position:absolute; inset:0; }
+  .loc{ position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; width:120px; text-align:center; color:var(--map-ink); background:none; border:none; }
+  .loc .pin{ width:52px; height:52px; border-radius:50%; background:var(--panel); display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 4px 10px rgba(90,65,35,.4); border:3px solid #fff; transition:transform .18s ease, box-shadow .18s ease; }
+  .loc .lbl{ font-size:12.5px; font-weight:700; line-height:1.15; max-width:110px; }
+  .loc:hover .pin{ transform:scale(1.14) translateY(-3px); box-shadow:0 8px 16px rgba(90,65,35,.5); }
+  .loc:focus-visible{ outline:none; } .loc:focus-visible .pin{ outline:3px solid var(--heart); outline-offset:3px; }
+
+  .loc.home .pin{ width:62px; height:62px; font-size:30px; border:3px solid #f2c94c; box-shadow:0 4px 14px rgba(90,65,35,.5), 0 0 0 4px rgba(242,201,76,.35); }
+  .loc.home .lbl{ font-size:13.5px; }
+
+  .here-badge{ position:absolute; left:50%; top:-14px; transform:translate(-50%,-100%); display:flex; align-items:center; gap:4px; background:var(--heart); color:#fff; font-size:11px; font-weight:700; padding:4px 9px; border-radius:999px; white-space:nowrap; box-shadow:0 3px 8px rgba(0,0,0,.3); animation:herePulse 1.8s ease-in-out infinite; }
+  .here-badge::after{ content:""; position:absolute; left:50%; bottom:-5px; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--heart); }
+  @keyframes herePulse{ 0%,100%{ transform:translate(-50%,-100%) scale(1); } 50%{ transform:translate(-50%,-100%) scale(1.08); } }
+  body.reduced .here-badge{ animation:none; }
+
+  #mapPaths{ position:absolute; inset:0; z-index:0; pointer-events:none; }
+
+  #locCard{ position:absolute; left:50%; bottom:20px; transform:translateX(-50%) translateY(20px); width:min(420px,90vw); background:var(--panel); color:var(--ink); border-radius:18px; padding:16px 18px; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; z-index:6; }
+  #locCard.show{ opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  #locCard h3{ margin:0 0 4px; font-size:19px; display:flex; align-items:center; gap:8px; }
+  #locCard p{ margin:0 0 12px; font-size:14px; line-height:1.4; }
+  #locCard .go{ background:var(--heart); color:#fff; border:none; padding:9px 16px; border-radius:12px; font-size:14px; cursor:pointer; }
+  #locCard .go:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+
+  body.reduced #mapView{ animation:none; }
+
+  @media (max-width:640px){ .loc{ width:92px; } .loc .pin{ width:44px; height:44px; font-size:22px; } .loc .lbl{ font-size:11px; } #mapTitle{ font-size:20px; } }
+</style>
+</head>
+<body>
+  <div id="mapView">
+    <div class="map-parchment"></div>
+    <svg id="mapPaths"></svg>
+    <div class="map-vignette"></div>
+
+    <div id="mapTitle">GrAngel World<small>One connected village — tap a place to visit</small></div>
+    <!-- link back to the village page -->
+    <a href="index.html" id="backBtn">← Back to Village</a>
+
+    <div id="markers"></div>
+
+    <div id="locCard" role="dialog" aria-live="polite">
+      <h3><span id="lcIcon">💛</span> <span id="lcName">Place</span></h3>
+      <p id="lcDesc">Description</p>
+      <button class="go" id="lcGo">Visit this place →</button>
+    </div>
+  </div>
+
+<script>
+  /* ============================================================
+     LOCATION DATA — edit here to move / rename places.
+     x / y are percentages across the map (0–100).
+     ============================================================ */
+  const LOCATIONS = [
+    { id:"braveheart", name:"Brave Heart Village",   icon:"💛", x:14, y:30, desc:"Find your courage with Gram. Play a game!" },
+    { id:"feelwell",   name:"FeelWell Garden",       icon:"🌸", x:38, y:26, desc:"Breathe, rest, and feel calm. Play a game!" },
+    { id:"superpower", name:"Superpower Zone",       icon:"⚡", x:63, y:28, desc:"Celebrate what makes you different at Auzzie's Superpower Academy!" },
+    { id:"kindness",   name:"Kindness Corner",       icon:"🍕", x:88, y:32, desc:"Share kindness with Hero. Play a game!" },
+    { id:"storytime",  name:"Storytime Treehouse",   icon:"📚", x:14, y:53, desc:"Listen, read, and imagine. Play a game!" },
+    { id:"creativity", name:"Creativity Cottage",    icon:"🎨", x:40, y:55, desc:"Draw, build, sing, and create. Play a game!", page:"creativity-cottage.html" },
+    { id:"courtyard",  name:"Grandparents' Courtyard",icon:"🏡", x:64, y:54, desc:"Enjoy stories and family activities. Play a game!" },
+    { id:"pond",       name:"Peaceful Pond",         icon:"💧", x:89, y:56, desc:"Slow down with gentle sounds. Play a game!" },
+    { id:"listening",  name:"The Listening Garden",  icon:"✨", x:16, y:78, desc:"A private, gentle place for quiet moments. Visit when you need calm." },
+    { id:"writing",    name:"The Writing Studio",    icon:"✏️", x:40, y:80, desc:"Finish a new short story each week and write your own ending!" },
+    { id:"learning",   name:"GrAngel Learning Lab",  icon:"🎓", x:62, y:79, desc:"Practice math, English, new words, and science trivia. Start learning!" },
+    { id:"bingo",      name:"GrAngel World Bingo",   icon:"🎯", x:86, y:80, desc:"Complete kind, brave, calm, and creative activities. Play a game!" },
+    { id:"battleboots",name:"Banana Muffin Battle Boots", icon:"🛡️", x:30, y:93, desc:"Practice strong, safe choices with Tommy, Max, and Hero. Play a game!" },
+  ];
+
+  // The center of the village — every other place connects back to this, directly or through a neighbor.
+  const HOME = { id:"home", name:"Home", icon:"🏠", x:52, y:66, desc:"This is your home base. Every path on the map leads back here!" };
+
+  // A spanning tree rooted at HOME: each pair is [fromId, toId]. Home only touches
+  // a few "hub" locations directly — everything else branches off those hubs.
+  const EDGES = [
+    ["home","creativity"], ["home","superpower"], ["home","feelwell"], ["home","writing"], ["home","courtyard"],
+    ["courtyard","pond"], ["courtyard","learning"],
+    ["pond","bingo"], ["pond","kindness"],
+    ["writing","battleboots"], ["writing","listening"],
+    ["creativity","storytime"],
+    ["storytime","braveheart"],
+  ];
+
+  const markers=document.getElementById('markers');
+  const ALL_PLACES=[HOME, ...LOCATIONS];
+  ALL_PLACES.forEach(loc=>{
+    const el=document.createElement('button');
+    el.className='loc'+(loc.id==='home' ? ' home' : ''); el.style.left=loc.x+'%'; el.style.top=loc.y+'%';
+    el.setAttribute('aria-label',loc.name);
+    const badge = loc.id==='home' ? '<span class="here-badge">📍 You are here</span>' : '';
+    el.innerHTML=`${badge}<span class="pin">${loc.icon}</span><span class="lbl">${loc.name}</span>`;
+    el.addEventListener('click',()=>{
+      if(loc.id==='home'){ window.location.href='index.html'; }
+      else if(loc.page){ window.location.href=loc.page; }
+      else { openLocCard(loc); }
+    });
+    markers.appendChild(el);
+  });
+
+  // Draw dashed paths using each marker's REAL on-screen pixel position (not an abstract
+  // 0-100 grid), so the lines are guaranteed to touch the pins regardless of window shape.
+  const byId=Object.fromEntries(ALL_PLACES.map(p=>[p.id,p]));
+  const pathsSvg=document.getElementById('mapPaths');
+  const mapView=document.getElementById('mapView');
+
+  function drawPaths(){
+    const w=mapView.clientWidth, h=mapView.clientHeight;
+    pathsSvg.setAttribute('width', w);
+    pathsSvg.setAttribute('height', h);
+    pathsSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    pathsSvg.innerHTML='';
+    EDGES.forEach(([fromId,toId])=>{
+      const a=byId[fromId], b=byId[toId];
+      if(!a||!b) return;
+      const ax=a.x/100*w, ay=a.y/100*h, bx=b.x/100*w, by=b.y/100*h;
+      const mx=(ax+bx)/2, my=(ay+by)/2;
+      const dx=bx-ax, dy=by-ay;
+      // Bow the line slightly off the straight midpoint for a hand-drawn map feel.
+      const cx=mx - dy*0.18, cy=my + dx*0.18;
+      const isHomeEdge = fromId==='home' || toId==='home';
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${ax},${ay} Q${cx},${cy} ${bx},${by}`);
+      path.setAttribute('fill','none');
+      path.setAttribute('stroke','#b89b6b');
+      path.setAttribute('stroke-width', isHomeEdge ? '3' : '2');
+      path.setAttribute('stroke-dasharray','9 9');
+      path.setAttribute('opacity', isHomeEdge ? '0.9' : '0.65');
+      if(isHomeEdge) path.classList.add('home-edge');
+      pathsSvg.appendChild(path);
+    });
+  }
+  drawPaths();
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{ clearTimeout(resizeTimer); resizeTimer=setTimeout(drawPaths,120); });
+
+  const locCard=document.getElementById('locCard');
+  const lcIcon=document.getElementById('lcIcon'), lcName=document.getElementById('lcName'), lcDesc=document.getElementById('lcDesc'), lcGo=document.getElementById('lcGo');
+  let currentLoc=null;
+  function openLocCard(loc){ currentLoc=loc; lcIcon.textContent=loc.icon; lcName.textContent=loc.name; lcDesc.textContent=loc.desc; locCard.classList.add('show'); }
+  lcGo.addEventListener('click',()=>{
+    // Later: send the child to that location's own page, e.g. location pages
+    // window.location.href = currentLoc.id + ".html";
+    lcDesc.textContent="This place is coming soon 💛 — its game will open here.";
+    lcGo.textContent="Can't wait!";
+    setTimeout(()=>{ lcGo.textContent="Visit this place →"; },1600);
+  });
+
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+  // Esc goes back to the village
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ window.location.href='index.html'; } });
+</script>
+</body>
+</html>

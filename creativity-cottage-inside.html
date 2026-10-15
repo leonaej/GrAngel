@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inside Creativity Cottage — GrAngel World</title>
+<style>
+  :root{
+    --wall:#e8c9a0; --wall-dk:#dab588;
+    --beam:#7a5236; --beam-dk:#5e3d27;
+    --floor-a:#a9764a; --floor-b:#9c6a40;
+    --wood:#8a5a35; --wood-dk:#6b4326;
+    --rug-a:#d97a7a; --rug-b:#c96a6a;
+    --bloom-a:#e79ac0; --bloom-b:#b79ad6; --bloom-c:#e7c877;
+    --leaf:#7fb06a; --leaf-dk:#6a9a58;
+    --glow:#ffd98a;
+    --heart:#e26d6d; --ink:#4a352a; --panel:#fbf6ec;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; height:100%; }
+  body{ font-family:"Segoe UI",system-ui,sans-serif; color:var(--ink); background:#2a1c12; overflow:hidden; }
+  #stage{ position:relative; width:100vw; height:100vh; overflow:hidden; animation:pagein .5s ease; }
+  @keyframes pagein{ from{ opacity:0; } to{ opacity:1; } }
+
+  /* Ceiling with exposed beams, suggesting the underside of the cottage roof */
+  .ceiling{ position:absolute; top:0; left:0; right:0; height:20%; background:linear-gradient(to bottom,#6b4a30 0%,var(--beam) 100%); }
+  .beam{ position:absolute; top:0; width:16px; height:100%; background:var(--beam-dk); opacity:.55; }
+  .beam.b1{ left:14%; } .beam.b2{ left:38%; } .beam.b3{ left:62%; } .beam.b4{ left:86%; }
+
+  .lamp{ position:absolute; top:18%; left:50%; transform:translateX(-50%); width:6px; height:70px; background:var(--beam-dk); }
+  .lamp::after{ content:""; position:absolute; bottom:-26px; left:50%; transform:translateX(-50%); width:60px; height:40px; background:linear-gradient(180deg,#4a2f1c 0%,#2f1d10 100%); border-radius:0 0 28px 28px; box-shadow:0 30px 60px 20px rgba(255,217,138,.35); }
+  .lamp .bulb{ position:absolute; bottom:-30px; left:50%; transform:translateX(-50%); width:16px; height:16px; border-radius:50%; background:radial-gradient(circle,var(--glow) 0%,rgba(255,217,138,0) 70%); animation:flicker 3s ease-in-out infinite; }
+  @keyframes flicker{ 0%,100%{ opacity:1; } 50%{ opacity:.82; } }
+
+  /* Wall + floor */
+  .wall{ position:absolute; top:20%; left:0; right:0; bottom:38%; background:linear-gradient(180deg,var(--wall) 0%,var(--wall-dk) 100%); }
+  .floor{ position:absolute; left:0; right:0; bottom:0; height:38%; background:repeating-linear-gradient(180deg,var(--floor-a) 0px,var(--floor-a) 26px,var(--floor-b) 26px,var(--floor-b) 30px); box-shadow:inset 0 12px 24px rgba(0,0,0,.18); }
+  .baseboard{ position:absolute; left:0; right:0; bottom:38%; height:10px; background:var(--wood-dk); }
+
+  .rug{ position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:340px; height:130px; background:repeating-radial-gradient(ellipse at center,var(--rug-a) 0 14px,var(--rug-b) 14px 28px); border-radius:50%; box-shadow:0 10px 18px rgba(0,0,0,.25); }
+
+  /* Shelf with jars and books */
+  .shelf{ position:absolute; top:26%; left:6%; width:230px; }
+  .shelf .board{ position:absolute; width:100%; height:12px; background:var(--wood); border-radius:2px; box-shadow:0 4px 6px rgba(0,0,0,.25); }
+  .shelf .board.s1{ top:0; } .shelf .board.s2{ top:74px; }
+  .shelf .row{ position:absolute; left:6px; display:flex; align-items:flex-end; gap:8px; }
+  .shelf .row.r1{ bottom:calc(100% - 74px + 12px); }
+  .shelf .row.r2{ bottom:12px; }
+  .jar{ width:20px; height:26px; border-radius:4px 4px 8px 8px; box-shadow:inset 0 -4px 0 rgba(0,0,0,.12); }
+  .jar.j-a{ background:var(--bloom-a); } .jar.j-b{ background:var(--bloom-b); } .jar.j-c{ background:var(--bloom-c); } .jar.j-d{ background:var(--leaf); }
+  .book{ width:14px; border-radius:2px 2px 0 0; }
+  .book.bk1{ height:34px; background:#c9705f; } .book.bk2{ height:30px; background:#7f9fb0; } .book.bk3{ height:38px; background:#e0b463; }
+
+  /* Small round window on the back wall, letting in a warm glow */
+  .window{ position:absolute; top:24%; right:8%; width:96px; height:96px; border-radius:50%; background:radial-gradient(circle at 40% 35%, #ffe9c2 0%, #f2c98a 60%, #dba95f 100%); border:8px solid var(--wood); box-shadow:0 0 40px rgba(255,217,138,.5), inset 0 0 0 3px rgba(255,255,255,.25); }
+  .window::before,.window::after{ content:""; position:absolute; background:var(--wood); }
+  .window::before{ left:50%; top:0; bottom:0; width:5px; transform:translateX(-50%); }
+  .window::after{ top:50%; left:0; right:0; height:5px; transform:translateY(-50%); }
+
+  /* Table with fruit bowl */
+  .table{ position:absolute; bottom:16%; right:16%; width:150px; height:20px; background:var(--wood); border-radius:4px; box-shadow:0 6px 0 rgba(0,0,0,.1); }
+  .table .leg{ position:absolute; bottom:-46px; width:10px; height:46px; background:var(--wood-dk); }
+  .table .leg.l1{ left:8px; } .table .leg.l2{ right:8px; }
+  .table .bowl{ position:absolute; top:-16px; left:50%; transform:translateX(-50%); width:52px; height:20px; background:var(--wood-dk); border-radius:0 0 26px 26px; }
+  .table .bowl span{ position:absolute; top:-11px; width:14px; height:14px; border-radius:50%; }
+  .table .bowl span:nth-child(1){ left:2px; background:#e0654f; }
+  .table .bowl span:nth-child(2){ left:16px; background:#e7c877; }
+  .table .bowl span:nth-child(3){ left:30px; background:#c9705f; }
+
+  /* Easel + canvas, reused from the exterior scene */
+  .easel{ position:absolute; bottom:16%; left:22%; width:70px; height:120px; }
+  .easel .leg{ position:absolute; bottom:0; width:8px; height:88px; background:var(--wood-dk); }
+  .easel .leg.l1{ left:6px; transform:rotate(9deg); transform-origin:bottom; }
+  .easel .leg.l2{ right:6px; transform:rotate(-9deg); transform-origin:bottom; }
+  .easel .canvas{ position:absolute; bottom:48px; left:2px; width:64px; height:54px; background:#fbf3e6; border:5px solid var(--wood-dk); border-radius:3px; }
+  .easel .canvas span{ position:absolute; width:16px; height:16px; border-radius:50%; opacity:.85; }
+  .easel .canvas span:nth-child(1){ background:var(--bloom-a); top:8px; left:8px; }
+  .easel .canvas span:nth-child(2){ background:var(--bloom-b); top:20px; left:28px; }
+  .easel .canvas span:nth-child(3){ background:var(--bloom-c); top:30px; left:10px; }
+
+  /* Hanging plant in the corner */
+  .planter{ position:absolute; top:20%; left:3%; width:60px; }
+  .planter .pot{ width:34px; height:28px; margin:0 auto; background:var(--wood-dk); border-radius:0 0 8px 8px; }
+  .planter .leafcluster{ position:relative; width:60px; height:40px; margin:0 auto; }
+  .planter .leafcluster span{ position:absolute; width:22px; height:22px; border-radius:50% 50% 50% 0; background:var(--leaf); }
+  .planter .leafcluster span:nth-child(1){ left:0; top:10px; transform:rotate(20deg); }
+  .planter .leafcluster span:nth-child(2){ left:18px; top:0; background:var(--leaf-dk); transform:rotate(-10deg); }
+  .planter .leafcluster span:nth-child(3){ left:36px; top:10px; transform:rotate(25deg); }
+
+  /* Bunting strung across the ceiling */
+  .bunting{ position:absolute; top:19%; left:8%; right:8%; height:30px; }
+  .bunting svg{ width:100%; height:100%; overflow:visible; }
+
+  /* Door back outside */
+  #exitDoor{ position:absolute; bottom:38%; left:50%; transform:translateX(-50%); width:74px; height:150px; background:linear-gradient(180deg,var(--wood) 0%,var(--wood-dk) 100%); border-radius:8px 8px 0 0; cursor:pointer; box-shadow:inset 0 0 0 3px rgba(255,255,255,.08); transition:transform .2s ease; z-index:6; }
+  #exitDoor:hover, #exitDoor.near{ transform:translateX(-50%) translateY(-4px); }
+  /* A generously-sized invisible hit area, well beyond the door's own tight visual
+     bounds, so it's easy to click without needing pixel-precise aim. */
+  #exitDoor::before{ content:""; position:absolute; inset:-40px; cursor:pointer; }
+  #exitDoor .glass{ position:absolute; top:18px; left:50%; transform:translateX(-50%); width:36px; height:36px; border-radius:50%; background:radial-gradient(circle,#dff0f5 0%,#bcdbe4 100%); border:4px solid var(--wood-dk); }
+  #exitDoor .knob{ position:absolute; right:9px; top:76px; width:8px; height:8px; border-radius:50%; background:#f2d9a8; }
+
+  #exitHint{ position:absolute; left:50%; bottom:calc(38% + 158px); transform:translateX(-50%) translateY(6px); background:var(--panel); color:var(--ink); padding:8px 16px; border-radius:14px; font-size:14px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.15); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap; }
+  #exitHint.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* This wrapper spans the whole stage (so its transform can move everything inside
+     together) — pointer-events:none keeps that invisible full-screen box from
+     swallowing clicks meant for things underneath it; grangel opts back in below. */
+  #grangelGroup{ position:absolute; inset:0; z-index:25; pointer-events:none; }
+  #grangel{ position:absolute; left:70%; top:30%; width:88px; height:96px; object-fit:contain; animation:hover 4s ease-in-out infinite; cursor:pointer; filter:drop-shadow(0 8px 6px rgba(0,0,0,.3)); z-index:5; pointer-events:auto; }
+  @keyframes hover{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
+  #grangel-shadow{ position:absolute; left:70%; top:30%; margin-top:88px; width:56px; height:12px; margin-left:16px; background:rgba(0,0,0,.28); border-radius:50%; filter:blur(3px); animation:shadowpulse 4s ease-in-out infinite; z-index:4; }
+  @keyframes shadowpulse{ 0%,100%{ transform:scale(1); opacity:.35; } 50%{ transform:scale(.8); opacity:.22; } }
+
+  #bubble{ position:absolute; left:58%; top:22%; background:var(--panel); color:var(--ink); padding:10px 14px; border-radius:16px; font-size:15px; max-width:220px; box-shadow:0 6px 14px rgba(0,0,0,.12); opacity:0; transform:translateY(6px) scale(.96); transition:opacity .3s ease,transform .3s ease; pointer-events:none; z-index:6; }
+  #bubble.show{ opacity:1; transform:translateY(0) scale(1); }
+  #bubble::after{ content:""; position:absolute; left:22px; bottom:-8px; border:8px solid transparent; border-top-color:var(--panel); }
+
+  #player{ position:absolute; width:52px; height:78px; object-fit:contain; display:none; z-index:8; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); user-select:none; }
+  #player.active{ display:flex; }
+  #player-shadow{ position:absolute; width:40px; height:11px; background:rgba(0,0,0,.3); border-radius:50%; filter:blur(2px); z-index:7; display:none; }
+  #player-shadow.active{ display:block; }
+
+  #backBtn{ position:absolute; top:18px; left:18px; z-index:20; background:var(--panel); border:none; color:var(--ink); height:44px; padding:0 16px; border-radius:14px; font-size:15px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); display:flex; align-items:center; gap:6px; text-decoration:none; }
+  #pageTag{ position:absolute; top:18px; left:50%; transform:translateX(-50%); background:var(--panel); padding:8px 14px; border-radius:14px; font-size:14px; box-shadow:0 3px 8px rgba(0,0,0,.12); z-index:20; }
+
+  body.reduced .lamp .bulb{ animation:none; }
+  body.reduced #grangel{ animation:none; }
+  body.reduced #grangel-shadow{ animation:none; opacity:.28; }
+
+  @media (max-width:720px){
+    .shelf{ width:170px; }
+    .planter, .bunting{ display:none; }
+    .window{ width:70px; height:70px; }
+    .table{ width:110px; }
+    .easel{ transform:scale(.85); left:14%; }
+  }
+</style>
+</head>
+<body>
+  <div id="stage">
+    <div class="ceiling">
+      <div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div><div class="beam b4"></div>
+    </div>
+    <div class="lamp"><span class="bulb"></span></div>
+    <div class="bunting" id="bunting"></div>
+
+    <div class="wall"></div>
+    <div class="window"></div>
+    <div class="planter"><div class="leafcluster"><span></span><span></span><span></span></div><div class="pot"></div></div>
+
+    <div class="shelf">
+      <div class="board s1"></div>
+      <div class="row r1"><span class="book bk1"></span><span class="book bk2"></span><span class="book bk3"></span></div>
+      <div class="board s2"></div>
+      <div class="row r2"><span class="jar j-a"></span><span class="jar j-b"></span><span class="jar j-c"></span><span class="jar j-d"></span></div>
+    </div>
+
+    <div class="baseboard"></div>
+    <div class="floor"></div>
+    <div class="rug"></div>
+
+    <div class="easel">
+      <div class="leg l1"></div><div class="leg l2"></div>
+      <div class="canvas"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="table">
+      <div class="leg l1"></div><div class="leg l2"></div>
+      <div class="bowl"><span></span><span></span><span></span></div>
+    </div>
+
+    <div id="exitHint">🚪 Click the door to go back outside</div>
+    <div id="exitDoor" role="button" tabindex="0" aria-label="Exit to the garden"><div class="glass"></div><div class="knob"></div></div>
+
+    <div id="grangelGroup">
+      <div id="grangel-shadow"></div>
+      <img id="grangel" src="gram_grangel.png" alt="GrAngel, a friendly waving heart" />
+      <div id="bubble">So cozy in here! 🎨</div>
+    </div>
+
+    <div id="player-shadow"></div>
+    <img id="player" alt="Your character" />
+
+    <a href="creativity-cottage.html" id="backBtn">← Outside</a>
+    <div id="pageTag">🎨 Creativity Cottage</div>
+  </div>
+
+<script>
+  const stage=document.getElementById('stage');
+  const grangel=document.getElementById('grangel');
+  const bubble=document.getElementById('bubble');
+  const exitDoor=document.getElementById('exitDoor');
+  const exitHint=document.getElementById('exitHint');
+
+  function greet(){ bubble.classList.add('show'); clearTimeout(greet._t); greet._t=setTimeout(()=>bubble.classList.remove('show'),2600); }
+  grangel.addEventListener('click',greet);
+  grangel.setAttribute('tabindex','0');
+  grangel.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') greet(); });
+
+  function exitCottage(){ window.location.href='creativity-cottage.html'; }
+  exitDoor.addEventListener('click', exitCottage);
+  exitDoor.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') exitCottage(); });
+
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+
+  // A little string of bunting flags across the ceiling.
+  (function drawBunting(){
+    const el=document.getElementById('bunting');
+    const w=el.clientWidth || window.innerWidth*0.84;
+    const colors=['#e79ac0','#b79ad6','#e7c877','#7fb06a'];
+    let svg=`<svg viewBox="0 0 ${w} 30" preserveAspectRatio="none">`;
+    svg+=`<path d="M0,4 Q${w/2},26 ${w},4" fill="none" stroke="#8a5a35" stroke-width="2"/>`;
+    const n=9;
+    for(let i=1;i<n;i++){
+      const t=i/n;
+      const x=t*w, y=4+Math.sin(t*Math.PI)*22;
+      svg+=`<path d="M${x-8},${y} L${x+8},${y} L${x},${y+16} Z" fill="${colors[i%colors.length]}"/>`;
+    }
+    svg+='</svg>';
+    el.innerHTML=svg;
+  })();
+
+  /* ============================================================
+     PLAYABLE CHARACTER — carries the same boy/girl choice over
+     from earlier pages; W A S D moves, bounded to the room floor.
+     ============================================================ */
+  const CHAR_SRC={ boy:'boy.png', girl:'girl.png' };
+  const player=document.getElementById('player');
+  const playerShadow=document.getElementById('player-shadow');
+
+  const px={ x: Math.round(window.innerWidth*0.5), y: Math.round(window.innerHeight*0.86) };
+  function groundBounds(){
+    return { minX:60, maxX:window.innerWidth-60, minY:window.innerHeight*0.66, maxY:window.innerHeight-20 };
+  }
+  function placePlayer(){
+    player.style.left=(px.x-26)+'px'; player.style.top=(px.y-39)+'px';
+    playerShadow.style.left=(px.x-20)+'px'; playerShadow.style.top=(px.y+32)+'px';
+  }
+  function activatePlayer(kind){
+    player.src=CHAR_SRC[kind]||CHAR_SRC.boy;
+    player.classList.add('active'); playerShadow.classList.add('active');
+    placePlayer();
+  }
+  const savedChar=localStorage.getItem('grangelChar');
+  activatePlayer(savedChar && CHAR_SRC[savedChar] ? savedChar : 'boy');
+
+  const keys=new Set();
+  window.addEventListener('keydown', e=>{
+    const k=e.key.toLowerCase();
+    if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){ keys.add(k); e.preventDefault(); }
+  });
+  window.addEventListener('keyup', e=>{ keys.delete(e.key.toLowerCase()); });
+
+  // GrAngel tags along, always computed directly from the player's CURRENT (already-
+  // clamped) position rather than accumulated deltas — accumulation was the earlier
+  // bug: it kept nudging GrAngel by the intended movement even on frames where the
+  // player was stuck at a wall and hadn't actually moved, so they'd drift apart.
+  const grangelGroup=document.getElementById('grangelGroup');
+  const GRANGEL_GAP={ x:-70, y:-70 }; // ~1 inch, diagonally up-left of the character
+  let grangelHome=null;
+  function updateGrangelPosition(){
+    grangelGroup.style.transform=`translate(${px.x+GRANGEL_GAP.x-grangelHome.x}px, ${px.y+GRANGEL_GAP.y-grangelHome.y}px)`;
+  }
+  function captureGrangelHome(){
+    const r=grangel.getBoundingClientRect();
+    grangelHome={ x:r.left+r.width/2, y:r.top+r.height/2 };
+    updateGrangelPosition();
+  }
+  captureGrangelHome();
+
+  function updateDoorProximity(){
+    const dr=exitDoor.getBoundingClientRect();
+    const dx=dr.left+dr.width/2, dy=dr.top+dr.height/2;
+    const dist=Math.hypot(px.x-dx, px.y-dy);
+    const near=dist<140;
+    exitDoor.classList.toggle('near', near);
+    exitHint.classList.toggle('show', near);
+  }
+  updateDoorProximity();
+
+  const SPEED=4;
+  function tick(){
+    if(player.classList.contains('active')){
+      let dx=0, dy=0;
+      if(keys.has('w')||keys.has('arrowup')) dy-=1;
+      if(keys.has('s')||keys.has('arrowdown')) dy+=1;
+      if(keys.has('a')||keys.has('arrowleft')){ dx-=1; player.style.transform='scaleX(-1)'; }
+      if(keys.has('d')||keys.has('arrowright')){ dx+=1; player.style.transform='scaleX(1)'; }
+      if(dx||dy){
+        const len=Math.hypot(dx,dy)||1;
+        const b=groundBounds();
+        px.x=Math.min(b.maxX,Math.max(b.minX, px.x+(dx/len)*SPEED));
+        px.y=Math.min(b.maxY,Math.max(b.minY, px.y+(dy/len)*SPEED));
+        placePlayer();
+        updateDoorProximity();
+        updateGrangelPosition();
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+</script>
+</body>
+</html>
