@@ -9,18 +9,22 @@
     --wall:#e8c9a0; --wall-dk:#dab588;
     --beam:#7a5236; --beam-dk:#5e3d27;
     --floor-a:#a9764a; --floor-b:#9c6a40;
-    --wood:#8a5a35; --wood-dk:#6b4326;
+    --wood:#8a5a35; --wood-dk:#6b4326; --wood-lt:#b98a5e;
     --rug-a:#d97a7a; --rug-b:#c96a6a;
     --bloom-a:#e79ac0; --bloom-b:#b79ad6; --bloom-c:#e7c877;
     --leaf:#7fb06a; --leaf-dk:#6a9a58;
     --glow:#ffd98a;
-    --heart:#e26d6d; --ink:#4a352a; --panel:#fbf6ec;
+    --heart:#e26d6d; --ink:#4a352a; --panel:#fbf6ec; --line:#ead9bf;
+    --k:1; /* station scale — smaller on phones */
   }
   *{ box-sizing:border-box; }
+  [hidden]{ display:none !important; }
   html,body{ margin:0; height:100%; }
   body{ font-family:"Segoe UI",system-ui,sans-serif; color:var(--ink); background:#2a1c12; overflow:hidden; }
   #stage{ position:relative; width:100vw; height:100vh; overflow:hidden; animation:pagein .5s ease; }
   @keyframes pagein{ from{ opacity:0; } to{ opacity:1; } }
+  #room{ position:absolute; inset:0; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
 
   /* Ceiling with exposed beams, suggesting the underside of the cottage roof */
   .ceiling{ position:absolute; top:0; left:0; right:0; height:20%; background:linear-gradient(to bottom,#6b4a30 0%,var(--beam) 100%); }
@@ -34,10 +38,10 @@
 
   /* Wall + floor */
   .wall{ position:absolute; top:20%; left:0; right:0; bottom:38%; background:linear-gradient(180deg,var(--wall) 0%,var(--wall-dk) 100%); }
-  .floor{ position:absolute; left:0; right:0; bottom:0; height:38%; background:repeating-linear-gradient(180deg,var(--floor-a) 0px,var(--floor-a) 26px,var(--floor-b) 26px,var(--floor-b) 30px); box-shadow:inset 0 12px 24px rgba(0,0,0,.18); }
+  .floor{ position:absolute; left:0; right:0; bottom:0; height:38%; background:repeating-linear-gradient(180deg,var(--floor-a) 0px,var(--floor-a) 26px,var(--floor-b) 26px,var(--floor-b) 30px); box-shadow:inset 0 12px 24px rgba(0,0,0,.18); cursor:pointer; }
   .baseboard{ position:absolute; left:0; right:0; bottom:38%; height:10px; background:var(--wood-dk); }
 
-  .rug{ position:absolute; left:50%; bottom:8%; transform:translateX(-50%); width:340px; height:130px; background:repeating-radial-gradient(ellipse at center,var(--rug-a) 0 14px,var(--rug-b) 14px 28px); border-radius:50%; box-shadow:0 10px 18px rgba(0,0,0,.25); }
+  .rug{ position:absolute; left:50%; bottom:6%; transform:translateX(-50%); width:min(380px,70vw); height:140px; background:repeating-radial-gradient(ellipse at center,var(--rug-a) 0 14px,var(--rug-b) 14px 28px); border-radius:50%; box-shadow:0 10px 18px rgba(0,0,0,.25); cursor:pointer; }
 
   /* Shelf with jars and books */
   .shelf{ position:absolute; top:26%; left:6%; width:230px; }
@@ -56,27 +60,6 @@
   .window::before,.window::after{ content:""; position:absolute; background:var(--wood); }
   .window::before{ left:50%; top:0; bottom:0; width:5px; transform:translateX(-50%); }
   .window::after{ top:50%; left:0; right:0; height:5px; transform:translateY(-50%); }
-
-  /* Table with fruit bowl */
-  .table{ position:absolute; bottom:16%; right:16%; width:150px; height:20px; background:var(--wood); border-radius:4px; box-shadow:0 6px 0 rgba(0,0,0,.1); }
-  .table .leg{ position:absolute; bottom:-46px; width:10px; height:46px; background:var(--wood-dk); }
-  .table .leg.l1{ left:8px; } .table .leg.l2{ right:8px; }
-  .table .bowl{ position:absolute; top:-16px; left:50%; transform:translateX(-50%); width:52px; height:20px; background:var(--wood-dk); border-radius:0 0 26px 26px; }
-  .table .bowl span{ position:absolute; top:-11px; width:14px; height:14px; border-radius:50%; }
-  .table .bowl span:nth-child(1){ left:2px; background:#e0654f; }
-  .table .bowl span:nth-child(2){ left:16px; background:#e7c877; }
-  .table .bowl span:nth-child(3){ left:30px; background:#c9705f; }
-
-  /* Easel + canvas, reused from the exterior scene */
-  .easel{ position:absolute; bottom:16%; left:22%; width:70px; height:120px; }
-  .easel .leg{ position:absolute; bottom:0; width:8px; height:88px; background:var(--wood-dk); }
-  .easel .leg.l1{ left:6px; transform:rotate(9deg); transform-origin:bottom; }
-  .easel .leg.l2{ right:6px; transform:rotate(-9deg); transform-origin:bottom; }
-  .easel .canvas{ position:absolute; bottom:48px; left:2px; width:64px; height:54px; background:#fbf3e6; border:5px solid var(--wood-dk); border-radius:3px; }
-  .easel .canvas span{ position:absolute; width:16px; height:16px; border-radius:50%; opacity:.85; }
-  .easel .canvas span:nth-child(1){ background:var(--bloom-a); top:8px; left:8px; }
-  .easel .canvas span:nth-child(2){ background:var(--bloom-b); top:20px; left:28px; }
-  .easel .canvas span:nth-child(3){ background:var(--bloom-c); top:30px; left:10px; }
 
   /* Hanging plant in the corner */
   .planter{ position:absolute; top:20%; left:3%; width:60px; }
@@ -97,116 +80,557 @@
   /* A generously-sized invisible hit area, well beyond the door's own tight visual
      bounds, so it's easy to click without needing pixel-precise aim. */
   #exitDoor::before{ content:""; position:absolute; inset:-40px; cursor:pointer; }
+  #exitDoor:focus-visible{ outline:3px solid var(--heart); outline-offset:3px; }
   #exitDoor .glass{ position:absolute; top:18px; left:50%; transform:translateX(-50%); width:36px; height:36px; border-radius:50%; background:radial-gradient(circle,#dff0f5 0%,#bcdbe4 100%); border:4px solid var(--wood-dk); }
   #exitDoor .knob{ position:absolute; right:9px; top:76px; width:8px; height:8px; border-radius:50%; background:#f2d9a8; }
 
-  #exitHint{ position:absolute; left:50%; bottom:calc(38% + 158px); transform:translateX(-50%) translateY(6px); background:var(--panel); color:var(--ink); padding:8px 16px; border-radius:14px; font-size:14px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.15); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap; }
+  #exitHint{ position:absolute; left:50%; bottom:calc(38% + 158px); transform:translateX(-50%) translateY(6px); background:var(--panel); color:var(--ink); padding:8px 16px; border-radius:14px; font-size:14px; font-weight:700; box-shadow:0 6px 14px rgba(0,0,0,.15); opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; white-space:nowrap; z-index:6000; }
   #exitHint.show{ opacity:1; transform:translateX(-50%) translateY(0); }
 
-  /* This wrapper spans the whole stage (so its transform can move everything inside
-     together) — pointer-events:none keeps that invisible full-screen box from
-     swallowing clicks meant for things underneath it; grangel opts back in below. */
-  #grangelGroup{ position:absolute; inset:0; z-index:25; pointer-events:none; }
+  /* ============================================================
+     STATIONS — 5 creative corners on the floor. Each is a piece of
+     furniture (.art) with a wooden label above it and a warm glow on
+     the floor that fades in when the avatar is near. z-index is set
+     from each station's floor line in JS, so the avatar walks in
+     front of or behind it naturally.
+     ============================================================ */
+  .station{ position:absolute; transform:translateX(-50%) scale(var(--k)); transform-origin:50% 100%; cursor:pointer; transition:transform .3s ease; outline:none; }
+  .station.near{ transform:translateX(-50%) translateY(-4px) scale(var(--k)); }
+  body.reduced .station.near{ transform:translateX(-50%) scale(var(--k)); }
+  .st-glow{ position:absolute; left:50%; bottom:-16px; width:170%; height:40px; transform:translateX(-50%); background:radial-gradient(ellipse at center, rgba(255,226,150,.85) 0%, rgba(255,217,138,.35) 45%, transparent 72%); opacity:0; transition:opacity .45s ease; pointer-events:none; }
+  .station.near .st-glow{ opacity:1; }
+  .st-label{ position:absolute; bottom:100%; left:50%; transform:translateX(-50%) rotate(-2deg); margin-bottom:10px; background:var(--wood-lt); color:#fff8ec; font-weight:700; font-size:13.5px; line-height:1.2; padding:6px 11px; border-radius:6px; box-shadow:0 4px 8px rgba(0,0,0,.25); white-space:nowrap; transition:box-shadow .3s ease; }
+  .st-label .done-heart{ color:var(--heart); margin-left:4px; text-shadow:0 0 2px #fff8ec; }
+  .station.near .st-label{ box-shadow:0 0 0 3px #fff3d6, 0 4px 10px rgba(0,0,0,.25); }
+  .station:focus-visible .st-label{ outline:3px solid var(--heart); outline-offset:2px; }
+  .art{ position:relative; display:block; }
+
+  .st-draw{ left:14%; bottom:22%; }
+  .st-scene{ left:17%; bottom:3%; }
+  .st-melody{ left:50%; bottom:2%; }
+  .st-story{ left:83%; bottom:3%; }
+  .st-angel{ left:86%; bottom:22%; }
+
+  /* Color & Create — the easel */
+  .art-easel{ width:76px; height:124px; }
+  .art-easel .leg{ position:absolute; bottom:0; width:8px; height:92px; background:var(--wood-dk); }
+  .art-easel .leg.l1{ left:8px; transform:rotate(9deg); transform-origin:bottom; }
+  .art-easel .leg.l2{ right:8px; transform:rotate(-9deg); transform-origin:bottom; }
+  .art-easel .leg.l3{ left:34px; height:100px; background:var(--wood); transform:rotate(-2deg); }
+  .art-easel .canvas{ position:absolute; bottom:48px; left:3px; width:70px; height:58px; background:#fbf3e6; border:5px solid var(--wood-dk); border-radius:3px; }
+  .art-easel .canvas span{ position:absolute; width:16px; height:16px; border-radius:50%; opacity:.85; }
+  .art-easel .canvas span:nth-child(1){ background:var(--bloom-a); top:8px; left:8px; }
+  .art-easel .canvas span:nth-child(2){ background:var(--bloom-b); top:20px; left:30px; }
+  .art-easel .canvas span:nth-child(3){ background:var(--bloom-c); top:28px; left:10px; }
+  .art-easel .tray{ position:absolute; bottom:44px; left:0; width:76px; height:6px; background:var(--wood); border-radius:2px; }
+
+  /* Build-a-Scene — a little felt board on legs */
+  .art-board{ width:118px; height:104px; }
+  .art-board .leg{ position:absolute; bottom:0; width:8px; height:44px; background:var(--wood-dk); }
+  .art-board .leg.l1{ left:16px; } .art-board .leg.l2{ right:16px; }
+  .art-board .felt{ position:absolute; top:0; left:0; width:118px; height:70px; border:6px solid var(--wood); border-radius:6px; background:linear-gradient(180deg,#cfe9f2 0 56%,#a9cf8f 56% 100%); box-shadow:0 4px 8px rgba(0,0,0,.2); overflow:hidden; }
+  .art-board .sun{ position:absolute; top:6px; left:10px; width:16px; height:16px; border-radius:50%; background:#f6d365; box-shadow:0 0 8px #f6d365; }
+  .art-board .mtree{ position:absolute; bottom:12px; right:18px; width:22px; height:20px; border-radius:50%; background:var(--leaf); }
+  .art-board .mtree::after{ content:""; position:absolute; left:9px; top:18px; width:4px; height:10px; background:var(--wood); }
+  .art-board .mflower{ position:absolute; bottom:8px; left:30px; width:8px; height:8px; border-radius:50%; background:var(--bloom-a); box-shadow:12px 2px 0 var(--bloom-b), 24px 0 0 var(--bloom-c); }
+
+  /* Make-a-Melody — a little xylophone with two mallets */
+  .art-xylo{ width:130px; height:66px; }
+  .art-xylo .frame{ position:absolute; bottom:4px; left:4px; width:122px; height:46px; background:var(--wood-dk); clip-path:polygon(0 18%,100% 32%,100% 68%,0 82%); }
+  .art-xylo .bars{ position:absolute; bottom:6px; left:10px; display:flex; align-items:center; gap:4px; height:52px; }
+  .art-xylo .bars span{ width:13px; border-radius:4px; box-shadow:inset 0 -3px 0 rgba(0,0,0,.12); }
+  .art-xylo .bars span:nth-child(1){ height:50px; background:#e88f8f; }
+  .art-xylo .bars span:nth-child(2){ height:46px; background:#f0b27a; }
+  .art-xylo .bars span:nth-child(3){ height:42px; background:#f2d16b; }
+  .art-xylo .bars span:nth-child(4){ height:38px; background:#9fcf7f; }
+  .art-xylo .bars span:nth-child(5){ height:34px; background:#7fc4c0; }
+  .art-xylo .bars span:nth-child(6){ height:30px; background:#8fb5e6; }
+  .art-xylo .bars span:nth-child(7){ height:26px; background:#b79ad6; }
+  .art-xylo .mallet{ position:absolute; bottom:2px; width:4px; height:40px; background:var(--wood-lt); border-radius:2px; transform-origin:bottom; }
+  .art-xylo .mallet::before{ content:""; position:absolute; top:-6px; left:-4px; width:12px; height:12px; border-radius:50%; background:#fff4ef; }
+  .art-xylo .mallet.m1{ right:2px; transform:rotate(28deg); }
+  .art-xylo .mallet.m2{ right:12px; transform:rotate(14deg); }
+
+  /* Story Builder — a cozy armchair with an open book */
+  .art-chair{ width:112px; height:98px; }
+  .art-chair .back{ position:absolute; bottom:24px; left:12px; width:88px; height:70px; border-radius:34px 34px 8px 8px; background:linear-gradient(180deg,var(--rug-a),var(--rug-b)); box-shadow:inset 0 -6px 0 rgba(0,0,0,.08); }
+  .art-chair .seat{ position:absolute; bottom:12px; left:8px; width:96px; height:26px; border-radius:10px; background:#e58b8b; box-shadow:inset 0 -4px 0 rgba(0,0,0,.08); }
+  .art-chair .arm{ position:absolute; bottom:12px; width:22px; height:46px; border-radius:11px 11px 6px 6px; background:var(--rug-b); }
+  .art-chair .arm.a1{ left:0; } .art-chair .arm.a2{ right:0; }
+  .art-chair .foot{ position:absolute; bottom:0; width:8px; height:13px; background:var(--wood-dk); border-radius:0 0 3px 3px; }
+  .art-chair .foot.f1{ left:12px; } .art-chair .foot.f2{ right:12px; }
+  .art-chair .book{ position:absolute; bottom:32px; left:34px; width:44px; height:16px; }
+  .art-chair .book::before, .art-chair .book::after{ content:""; position:absolute; bottom:0; width:22px; height:16px; background:#fffaf0; border:2px solid #c9705f; }
+  .art-chair .book::before{ left:0; border-radius:6px 0 0 2px; transform:skewY(8deg); }
+  .art-chair .book::after{ right:0; border-radius:0 6px 2px 0; transform:skewY(-8deg); }
+
+  /* Color-the-GrAngel — a small desk with a coloring page and crayons */
+  .art-desk{ width:116px; height:90px; }
+  .art-desk .top{ position:absolute; bottom:52px; left:0; width:116px; height:12px; background:var(--wood); border-radius:3px; box-shadow:0 4px 6px rgba(0,0,0,.2); }
+  .art-desk .leg{ position:absolute; bottom:0; width:8px; height:52px; background:var(--wood-dk); }
+  .art-desk .leg.l1{ left:10px; } .art-desk .leg.l2{ right:10px; }
+  .art-desk .paper{ position:absolute; bottom:62px; left:14px; width:50px; height:28px; background:#fffdf8; border-radius:2px; transform:rotate(-5deg); box-shadow:0 2px 3px rgba(0,0,0,.15); display:flex; align-items:center; justify-content:center; }
+  .art-desk .paper svg{ width:20px; height:18px; }
+  .art-desk .cup{ position:absolute; bottom:64px; right:16px; width:20px; height:22px; background:#7f9fb0; border-radius:2px 2px 5px 5px; }
+  .art-desk .cup i{ position:absolute; bottom:18px; width:5px; height:14px; border-radius:3px 3px 0 0; }
+  .art-desk .cup i:nth-child(1){ left:1px; background:var(--heart); transform:rotate(-12deg); }
+  .art-desk .cup i:nth-child(2){ left:7px; background:var(--bloom-c); height:17px; }
+  .art-desk .cup i:nth-child(3){ left:13px; background:var(--leaf); transform:rotate(12deg); }
+
+  #playPrompt{ position:absolute; transform:translate(-50%,-100%); background:var(--heart); color:#fff; border:none; font-weight:700; font-size:15px; padding:11px 18px; border-radius:999px; box-shadow:0 6px 14px rgba(0,0,0,.25); cursor:pointer; opacity:0; pointer-events:none; transition:opacity .25s ease; white-space:nowrap; z-index:6000; font-family:inherit; }
+  #playPrompt.show{ opacity:1; pointer-events:auto; }
+  #playPrompt:focus-visible{ outline:3px solid #fff3d6; outline-offset:3px; }
+
+  /* Auzzie, the GrAngel host — always airborne: the shadow sits on the floor well below. */
+  #grangelGroup{ position:absolute; inset:0; z-index:4000; pointer-events:none; }
   #grangel{ position:absolute; left:70%; top:30%; width:88px; height:96px; object-fit:contain; animation:hover 4s ease-in-out infinite; cursor:pointer; filter:drop-shadow(0 8px 6px rgba(0,0,0,.3)); z-index:5; pointer-events:auto; }
+  #grangel:focus-visible{ outline:3px solid var(--heart); outline-offset:3px; border-radius:12px; }
   @keyframes hover{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-12px); } }
-  #grangel-shadow{ position:absolute; left:70%; top:30%; margin-top:88px; width:56px; height:12px; margin-left:16px; background:rgba(0,0,0,.28); border-radius:50%; filter:blur(3px); animation:shadowpulse 4s ease-in-out infinite; z-index:4; }
+  #grangel-shadow{ position:absolute; left:70%; top:30%; margin-top:118px; width:56px; height:12px; margin-left:16px; background:rgba(0,0,0,.28); border-radius:50%; filter:blur(3px); animation:shadowpulse 4s ease-in-out infinite; z-index:4; }
   @keyframes shadowpulse{ 0%,100%{ transform:scale(1); opacity:.35; } 50%{ transform:scale(.8); opacity:.22; } }
 
-  #bubble{ position:absolute; left:58%; top:22%; background:var(--panel); color:var(--ink); padding:10px 14px; border-radius:16px; font-size:15px; max-width:220px; box-shadow:0 6px 14px rgba(0,0,0,.12); opacity:0; transform:translateY(6px) scale(.96); transition:opacity .3s ease,transform .3s ease; pointer-events:none; z-index:6; }
+  #bubble{ position:absolute; left:58%; top:22%; background:var(--panel); color:var(--ink); padding:10px 14px; border-radius:16px; font-size:15px; max-width:230px; box-shadow:0 6px 14px rgba(0,0,0,.12); opacity:0; transform:translateY(6px) scale(.96); transition:opacity .3s ease,transform .3s ease; pointer-events:none; z-index:6; }
   #bubble.show{ opacity:1; transform:translateY(0) scale(1); }
   #bubble::after{ content:""; position:absolute; left:22px; bottom:-8px; border:8px solid transparent; border-top-color:var(--panel); }
 
-  #player{ position:absolute; width:52px; height:78px; object-fit:contain; display:none; z-index:8; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); user-select:none; }
+  #player{ position:absolute; width:52px; height:78px; object-fit:contain; display:none; filter:drop-shadow(0 6px 6px rgba(0,0,0,.4)); user-select:none; transition:opacity .2s ease; pointer-events:none; }
   #player.active{ display:flex; }
-  #player-shadow{ position:absolute; width:40px; height:11px; background:rgba(0,0,0,.3); border-radius:50%; filter:blur(2px); z-index:7; display:none; }
+  #player.fading, #player-shadow.fading{ opacity:0; }
+  #player-shadow{ position:absolute; width:40px; height:11px; background:rgba(0,0,0,.3); border-radius:50%; filter:blur(2px); display:none; transition:opacity .2s ease; pointer-events:none; }
   #player-shadow.active{ display:block; }
 
-  #backBtn{ position:absolute; top:18px; left:18px; z-index:20; background:var(--panel); border:none; color:var(--ink); height:44px; padding:0 16px; border-radius:14px; font-size:15px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); display:flex; align-items:center; gap:6px; text-decoration:none; }
-  #pageTag{ position:absolute; top:18px; left:50%; transform:translateX(-50%); background:var(--panel); padding:8px 14px; border-radius:14px; font-size:14px; box-shadow:0 3px 8px rgba(0,0,0,.12); z-index:20; }
+  #backBtn{ position:absolute; top:18px; left:18px; z-index:5000; background:var(--panel); border:none; color:var(--ink); height:44px; padding:0 16px; border-radius:14px; font-size:15px; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.2); display:flex; align-items:center; gap:6px; text-decoration:none; }
+  #backBtn:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+  #pageTag{ position:absolute; top:18px; left:50%; transform:translateX(-50%); background:var(--panel); padding:8px 14px; border-radius:14px; font-size:14px; box-shadow:0 3px 8px rgba(0,0,0,.12); z-index:5000; white-space:nowrap; }
+
+  /* Global controls: sound + reduced motion. Above everything, including an open activity. */
+  #controls{ position:absolute; top:18px; right:18px; z-index:7000; display:flex; gap:8px; }
+  .icon-btn{ width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:var(--panel); border:none; color:var(--ink); border-radius:14px; font-size:18px; box-shadow:0 3px 8px rgba(0,0,0,.2); cursor:pointer; }
+  .icon-btn:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+
+  /* ============================================================
+     ACTIVITY VIEW — the focused, zoomed-in view of one station.
+     The card grows out of the station that opened it (transform-
+     origin is set in JS); with reduced motion it only fades.
+     ============================================================ */
+  #activity{ position:absolute; inset:0; z-index:6500; display:flex; padding:74px 16px 16px; background:rgba(42,28,18,.55); opacity:0; transition:opacity .35s ease; }
+  #activity.show{ opacity:1; }
+  .act-card{ position:relative; flex:1; max-width:1060px; margin:0 auto; min-width:0; background:var(--panel); border-radius:22px; box-shadow:0 18px 40px rgba(0,0,0,.35); display:flex; flex-direction:column; overflow:hidden; transform:scale(.2); transition:transform .4s ease; }
+  #activity.show .act-card{ transform:none; }
+  body.reduced .act-card{ transform:none; transition:none; }
+  .act-head{ display:flex; align-items:center; gap:12px 14px; padding:12px 16px; border-bottom:2px dashed var(--line); flex-wrap:wrap; }
+  #actBack{ height:46px; padding:0 18px; border-radius:14px; border:none; background:var(--heart); color:#fff; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; box-shadow:0 3px 8px rgba(0,0,0,.15); }
+  #actBack:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
+  #actTitle{ margin:0; font-size:21px; }
+  .act-host{ margin-left:auto; display:flex; align-items:center; gap:8px; max-width:420px; }
+  .act-host img{ width:48px; height:52px; object-fit:contain; flex:none; animation:hover 4s ease-in-out infinite; filter:drop-shadow(0 5px 4px rgba(0,0,0,.2)); }
+  .act-host p{ margin:0; background:#fff; border:2px solid var(--line); border-radius:14px; padding:7px 11px; font-size:14px; line-height:1.35; }
+  body.reduced .act-host img{ animation:none; }
+
+  .act-panel{ flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; padding:12px 16px 16px; }
+  .tools{ display:flex; flex-wrap:wrap; gap:8px 10px; align-items:center; }
+  .tool-btn{ height:44px; padding:0 14px; border-radius:14px; border:2px solid var(--line); background:#fff; color:var(--ink); font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:6px; }
+  .tool-btn:hover{ border-color:#d9c6a8; }
+  .tool-btn:focus-visible, .swatch:focus-visible, .size-btn:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+  .tool-btn:disabled{ opacity:.45; cursor:default; }
+  .tool-btn.finish{ background:var(--heart); color:#fff; border-color:transparent; margin-left:auto; }
+  .confirm{ display:inline-flex; align-items:center; gap:8px; background:#fff3d6; border-radius:14px; padding:4px 6px 4px 12px; font-size:14px; font-weight:600; }
+  .work{ flex:1; min-height:0; position:relative; display:flex; align-items:center; justify-content:center; }
+  .hint{ margin:0; font-size:13px; opacity:.75; }
+
+  .palette{ display:flex; flex-wrap:wrap; gap:6px; }
+  .swatch{ width:40px; height:40px; border-radius:50%; border:3px solid #fff; box-shadow:0 0 0 2px #d9c6a8; cursor:pointer; padding:0; transition:transform .15s ease; }
+  .swatch[aria-checked="true"]{ box-shadow:0 0 0 3px var(--ink); transform:scale(1.1); }
+  .sizes{ display:flex; gap:6px; }
+  .size-btn{ width:44px; height:44px; border-radius:14px; border:2px solid var(--line); background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; }
+  .size-btn i{ display:block; border-radius:50%; background:var(--ink); }
+  .size-btn[aria-checked="true"]{ border-color:var(--ink); background:#fff3d6; }
+
+  /* Color & Create */
+  #drawCanvas{ display:block; background:#fffdf8; border-radius:14px; box-shadow:0 0 0 3px var(--line), 0 6px 14px rgba(0,0,0,.08); touch-action:none; cursor:crosshair; }
+  #drawCanvas:focus-visible{ outline:3px solid var(--heart); outline-offset:3px; }
+  #drawCursor{ position:absolute; border:2px solid var(--ink); border-radius:50%; pointer-events:none; transform:translate(-50%,-50%); box-shadow:0 0 0 2px #fff; }
+  #drawCursor.down{ background:rgba(226,109,109,.25); }
+
+  /* Build-a-Scene: 1em inside the board = 1% of the board's width (font-size set in JS) */
+  .scene-tray{ display:flex; flex-wrap:wrap; gap:6px; }
+  .tray-btn{ width:58px; height:58px; border-radius:14px; border:2px solid var(--line); background:linear-gradient(180deg,#e6f3f6 0%,#fff 100%); cursor:grab; padding:0; display:flex; align-items:center; justify-content:center; touch-action:none; position:relative; }
+  .tray-btn:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+  .tray-btn .pc{ position:relative; pointer-events:none; }
+  .scene-tray.drop-ok{ background:#fff3d6; border-radius:14px; box-shadow:0 0 0 3px #f2d9a8; }
+  #sceneBoard{ position:relative; border-radius:14px; overflow:hidden; box-shadow:0 0 0 3px var(--line), 0 6px 14px rgba(0,0,0,.08); background:linear-gradient(180deg,#bfe3ec 0%,#e9f4ec 58%); touch-action:none; }
+  #sceneBoard .hill{ position:absolute; left:-10%; right:-10%; bottom:0; height:42%; background:linear-gradient(180deg,#a9cf8f,#8fbf78); border-radius:50% 50% 0 0 / 30% 30% 0 0; pointer-events:none; }
+  #sceneBoard .empty-note{ position:absolute; left:50%; top:38%; transform:translate(-50%,-50%); background:rgba(255,255,255,.75); padding:8px 14px; border-radius:12px; font-size:15px; font-weight:600; pointer-events:none; text-align:center; transition:opacity .3s ease; }
+  .piece{ position:absolute; transform:translate(-50%,-50%); cursor:grab; touch-action:none; outline:none; }
+  .piece .pc{ transform:scale(var(--ps,1)); }
+  .piece.selected{ filter:drop-shadow(0 0 4px #fff) drop-shadow(0 0 2px var(--heart)); }
+  .piece:focus-visible{ filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 3px var(--heart)); }
+  #dragLayer{ position:absolute; inset:0; pointer-events:none; z-index:20; }
+  #dragLayer .piece{ opacity:.9; }
+  .pc{ display:block; position:relative; }
+  .pc-tree{ width:12em; height:15em; }
+  .pc-tree i{ position:absolute; display:block; }
+  .pc-tree .canopy{ top:0; left:0; width:12em; height:11em; border-radius:50% 50% 46% 46%; background:radial-gradient(circle at 40% 35%,var(--leaf) 0%,var(--leaf-dk) 100%); }
+  .pc-tree .trunk{ bottom:0; left:5em; width:2em; height:5.5em; background:var(--wood-lt); border-radius:.6em; z-index:-1; }
+  .pc-bush{ width:10em; height:6em; border-radius:50% 50% 45% 45%; background:radial-gradient(circle at 35% 28%, var(--leaf) 0%, var(--leaf-dk) 100%); }
+  .pc-flower{ width:3.6em; height:9em; }
+  .pc-flower i{ position:absolute; display:block; }
+  .pc-flower .stem{ left:1.55em; top:3em; width:.5em; height:6em; background:var(--leaf-dk); border-radius:.3em; }
+  .pc-flower .bloom{ left:0; top:0; width:3.6em; height:3.6em; border-radius:50%; background:var(--fc); box-shadow:inset 0 0 0 .5em rgba(255,255,255,.18); }
+  .pc-flower .bloom::after{ content:""; position:absolute; left:1.15em; top:1.15em; width:1.3em; height:1.3em; border-radius:50%; background:#f6e3a1; }
+  .pc-heart{ width:6em; height:6em; }
+  .pc-heart i{ position:absolute; left:1.2em; top:1.6em; width:3.6em; height:3.6em; background:var(--heart); transform:rotate(45deg); display:block; }
+  .pc-heart i::before, .pc-heart i::after{ content:""; position:absolute; width:3.6em; height:3.6em; background:var(--heart); border-radius:50%; }
+  .pc-heart i::before{ top:-1.8em; left:0; } .pc-heart i::after{ left:-1.8em; top:0; }
+  .pc-sun{ width:10em; height:10em; border-radius:50%; background:radial-gradient(circle at 40% 38%,#fbe7a1 0%,#f6d365 60%,#f2c14e 100%); box-shadow:0 0 2.4em 1em rgba(246,211,101,.55); }
+  .pc-cloud{ width:14em; height:4.6em; background:#fff; border-radius:3em; }
+  .pc-cloud::before, .pc-cloud::after{ content:""; position:absolute; background:#fff; border-radius:50%; }
+  .pc-cloud::before{ width:6em; height:6em; top:-2.6em; left:2em; }
+  .pc-cloud::after{ width:4.6em; height:4.6em; top:-1.6em; left:7.4em; }
+  .pc-rainbow{ width:18em; height:9em; background:radial-gradient(circle 9em at 50% 100%, transparent 38%, #b79ad6 38% 46%, #8fb5e6 46% 54%, #9fcf7f 54% 62%, #f2d16b 62% 70%, #f0b27a 70% 78%, #e88f8f 78% 86%, transparent 86%); }
+  .pc-grangel{ width:12em; height:16em; }
+  .pc-grangel img{ position:absolute; top:0; left:0; width:12em; height:12em; object-fit:contain; animation:hover 4s ease-in-out infinite; pointer-events:none; }
+  .pc-grangel i{ position:absolute; left:3.5em; bottom:.4em; width:5em; height:1.1em; border-radius:50%; background:rgba(0,0,0,.16); display:block; }
+  body.reduced .pc-grangel img{ animation:none; }
+
+  /* Story Builder */
+  .story-wrap{ flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column; gap:12px; padding-right:4px; }
+  .story-group{ border:none; margin:0; padding:0; }
+  .story-group legend{ font-weight:700; font-size:16px; margin-bottom:6px; padding:0; }
+  .choices{ display:flex; flex-wrap:wrap; gap:8px; }
+  .choice{ min-height:48px; padding:6px 14px; border-radius:14px; border:2px solid var(--line); background:#fff; color:var(--ink); font-size:15px; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:8px; text-align:left; }
+  .choice .em{ font-size:22px; }
+  .choice[aria-checked="true"]{ border-color:var(--heart); background:#fff0ee; box-shadow:0 0 0 2px var(--heart); }
+  .choice:focus-visible{ outline:3px solid var(--heart); outline-offset:2px; }
+  .story-out{ background:#fffdf8; border:2px solid var(--line); border-radius:16px; padding:16px 18px; font-size:17px; line-height:1.6; box-shadow:0 6px 14px rgba(0,0,0,.06); animation:fadein .5s ease; }
+  .story-out h3{ margin:0 0 6px; font-size:18px; }
+  .story-out p{ margin:0; }
+  @keyframes fadein{ from{ opacity:0; } to{ opacity:1; } }
+
+  /* Color-the-GrAngel */
+  #angelSvg{ display:block; max-width:100%; max-height:100%; }
+  #angelSvg .part{ cursor:pointer; stroke:var(--ink); stroke-width:3; stroke-linejoin:round; transition:fill .25s ease, stroke .25s ease; outline:none; }
+  #angelSvg .part.line{ fill:none; stroke-width:10; stroke-linecap:round; }
+  #angelSvg .part:focus-visible{ stroke:var(--heart); stroke-width:5; }
+  #angelSvg .part.line:focus-visible{ stroke-width:12; }
+  #angelSvg .float{ animation:svgfloat 5s ease-in-out infinite; }
+  @keyframes svgfloat{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-5px); } }
+  body.reduced #angelSvg .float{ animation:none; }
+
+  /* Make-a-Melody */
+  .pads{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; width:min(100%, 640px); }
+  .pad{ aspect-ratio:1/1; min-height:64px; border-radius:22px; border:none; cursor:pointer; background:var(--pc); color:#fff; font-size:clamp(22px,5vw,40px); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; box-shadow:inset 0 -6px 0 rgba(0,0,0,.12), 0 6px 12px rgba(0,0,0,.1); transition:box-shadow .5s ease, transform .5s ease, filter .5s ease; font-family:inherit; text-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .pad small{ font-size:13px; font-weight:700; opacity:.85; }
+  .pad.ring{ box-shadow:inset 0 -6px 0 rgba(0,0,0,.12), 0 0 0 6px rgba(255,255,255,.9), 0 0 26px 8px var(--pc); transform:translateY(-3px); filter:brightness(1.06); transition-duration:.12s; }
+  body.reduced .pad.ring{ transform:none; }
+  .pad:focus-visible{ outline:4px solid var(--ink); outline-offset:3px; }
+  .tune{ display:flex; flex-wrap:wrap; gap:5px; align-items:center; min-height:24px; }
+  .tune i{ width:16px; height:16px; border-radius:50%; display:block; box-shadow:inset 0 -2px 0 rgba(0,0,0,.12); }
+  .tune .empty{ font-size:14px; opacity:.7; }
+  .sound-note{ margin:0; background:#fff3d6; border-radius:12px; padding:8px 12px; font-size:14px; font-weight:600; }
+
+  /* Finishing: a warm message and a red heart. No scores. */
+  .act-done{ position:absolute; inset:0; background:rgba(251,246,236,.94); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center; z-index:30; animation:fadein .4s ease; }
+  .big-heart{ position:relative; width:64px; height:64px; margin:30px 0 8px; animation:heartIn .7s ease both; }
+  .big-heart i{ position:absolute; inset:0; background:var(--heart); transform:rotate(45deg); display:block; }
+  .big-heart i::before, .big-heart i::after{ content:""; position:absolute; width:64px; height:64px; background:var(--heart); border-radius:50%; }
+  .big-heart i::before{ top:-32px; left:0; } .big-heart i::after{ left:-32px; top:0; }
+  @keyframes heartIn{ from{ opacity:0; transform:scale(.6); } to{ opacity:1; transform:scale(1); } }
+  body.reduced .big-heart{ animation:fadein .6s ease both; }
+  .act-done p{ margin:0; font-size:20px; font-weight:700; max-width:460px; line-height:1.4; }
+  .act-done .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
   body.reduced .lamp .bulb{ animation:none; }
   body.reduced #grangel{ animation:none; }
   body.reduced #grangel-shadow{ animation:none; opacity:.28; }
+  body.reduced #stage{ animation:none; }
 
   @media (max-width:720px){
+    :root{ --k:.72; }
     .shelf{ width:170px; }
     .planter, .bunting{ display:none; }
     .window{ width:70px; height:70px; }
-    .table{ width:110px; }
-    .easel{ transform:scale(.85); left:14%; }
+    #pageTag{ display:none; }
+    #activity{ padding:70px 8px 8px; }
+    .act-panel{ padding:10px; }
+    .act-host{ margin-left:0; max-width:none; width:100%; }
+    #actTitle{ font-size:18px; }
+    .pads{ grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px; }
+    .tool-btn.finish{ margin-left:0; }
   }
 </style>
 </head>
 <body>
   <div id="stage">
-    <div class="ceiling">
-      <div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div><div class="beam b4"></div>
+    <div id="room">
+      <div class="ceiling">
+        <div class="beam b1"></div><div class="beam b2"></div><div class="beam b3"></div><div class="beam b4"></div>
+      </div>
+      <div class="lamp"><span class="bulb"></span></div>
+      <div class="bunting" id="bunting"></div>
+
+      <div class="wall"></div>
+      <div class="window"></div>
+      <div class="planter"><div class="leafcluster"><span></span><span></span><span></span></div><div class="pot"></div></div>
+
+      <div class="shelf">
+        <div class="board s1"></div>
+        <div class="row r1"><span class="book bk1"></span><span class="book bk2"></span><span class="book bk3"></span></div>
+        <div class="board s2"></div>
+        <div class="row r2"><span class="jar j-a"></span><span class="jar j-b"></span><span class="jar j-c"></span><span class="jar j-d"></span></div>
+      </div>
+
+      <div class="baseboard"></div>
+      <div class="floor"></div>
+      <div class="rug"></div>
+
+      <!-- The 5 stations -->
+      <div class="station st-draw" data-station="draw" role="button" tabindex="0">
+        <span class="st-glow"></span>
+        <span class="st-label">🎨 Color &amp; Create<span class="done-heart" hidden>❤</span></span>
+        <span class="art art-easel"><i class="leg l3"></i><i class="leg l1"></i><i class="leg l2"></i><i class="tray"></i><span class="canvas"><span></span><span></span><span></span></span></span>
+      </div>
+      <div class="station st-scene" data-station="scene" role="button" tabindex="0">
+        <span class="st-glow"></span>
+        <span class="st-label">🌳 Build-a-Scene<span class="done-heart" hidden>❤</span></span>
+        <span class="art art-board"><i class="leg l1"></i><i class="leg l2"></i><span class="felt"><i class="sun"></i><i class="mtree"></i><i class="mflower"></i></span></span>
+      </div>
+      <div class="station st-melody" data-station="melody" role="button" tabindex="0">
+        <span class="st-glow"></span>
+        <span class="st-label">🎵 Make-a-Melody<span class="done-heart" hidden>❤</span></span>
+        <span class="art art-xylo"><i class="frame"></i><span class="bars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span><i class="mallet m1"></i><i class="mallet m2"></i></span>
+      </div>
+      <div class="station st-story" data-station="story" role="button" tabindex="0">
+        <span class="st-glow"></span>
+        <span class="st-label">📖 Story Builder<span class="done-heart" hidden>❤</span></span>
+        <span class="art art-chair"><i class="back"></i><i class="arm a1"></i><i class="arm a2"></i><i class="seat"></i><i class="foot f1"></i><i class="foot f2"></i><i class="book"></i></span>
+      </div>
+      <div class="station st-angel" data-station="angel" role="button" tabindex="0">
+        <span class="st-glow"></span>
+        <span class="st-label">🖍️ Color-the-GrAngel<span class="done-heart" hidden>❤</span></span>
+        <span class="art art-desk"><i class="leg l1"></i><i class="leg l2"></i><i class="top"></i>
+          <span class="paper"><svg viewBox="0 0 20 18" aria-hidden="true"><path d="M10 17 C4 12 1 9 1 5.5 C1 3 3 1 5.5 1 C7.5 1 9 2.3 10 4 C11 2.3 12.5 1 14.5 1 C17 1 19 3 19 5.5 C19 9 16 12 10 17 Z" fill="none" stroke="#4a352a" stroke-width="1.5"/></svg></span>
+          <span class="cup"><i></i><i></i><i></i></span></span>
+      </div>
+
+      <div id="exitHint">🚪 Click the door to go back outside</div>
+      <div id="exitDoor" role="button" tabindex="0" aria-label="Exit to the garden"><div class="glass"></div><div class="knob"></div></div>
+
+      <div id="grangelGroup">
+        <div id="grangel-shadow"></div>
+        <img id="grangel" src="gram_grangel.png" alt="Auzzie the GrAngel, your host" />
+        <div id="bubble">Hi, I'm Auzzie! Welcome to Creativity Cottage. 🎨</div>
+      </div>
+
+      <div id="player-shadow"></div>
+      <img id="player" alt="Your character" />
+
+      <button id="playPrompt"></button>
+
+      <a href="creativity-cottage.html" id="backBtn">← Outside</a>
+      <div id="pageTag">🎨 Creativity Cottage</div>
     </div>
-    <div class="lamp"><span class="bulb"></span></div>
-    <div class="bunting" id="bunting"></div>
 
-    <div class="wall"></div>
-    <div class="window"></div>
-    <div class="planter"><div class="leafcluster"><span></span><span></span><span></span></div><div class="pot"></div></div>
-
-    <div class="shelf">
-      <div class="board s1"></div>
-      <div class="row r1"><span class="book bk1"></span><span class="book bk2"></span><span class="book bk3"></span></div>
-      <div class="board s2"></div>
-      <div class="row r2"><span class="jar j-a"></span><span class="jar j-b"></span><span class="jar j-c"></span><span class="jar j-d"></span></div>
+    <div id="controls">
+      <button id="btnSound" class="icon-btn" aria-label="Sound" aria-pressed="true" title="Sound on/off">🔊</button>
+      <button id="btnMotion" class="icon-btn" aria-label="Reduce motion" aria-pressed="false" title="Reduce motion">🌿</button>
     </div>
 
-    <div class="baseboard"></div>
-    <div class="floor"></div>
-    <div class="rug"></div>
+    <div id="activity" role="dialog" aria-modal="true" aria-labelledby="actTitle" hidden>
+      <div class="act-card" id="actCard">
+        <div class="act-head">
+          <button id="actBack">← Back to the room</button>
+          <h2 id="actTitle">Station</h2>
+          <div class="act-host"><img src="gram_grangel.png" alt="" /><p id="actHostSays"></p></div>
+        </div>
 
-    <div class="easel">
-      <div class="leg l1"></div><div class="leg l2"></div>
-      <div class="canvas"><span></span><span></span><span></span></div>
+        <!-- Color & Create -->
+        <section class="act-panel" data-panel="draw" hidden>
+          <div class="tools">
+            <div class="palette" id="drawPalette" role="radiogroup" aria-label="Colors"></div>
+            <div class="sizes" id="drawSizes" role="radiogroup" aria-label="Brush size"></div>
+            <button class="tool-btn" id="drawUndo" disabled>↶ Undo</button>
+            <button class="tool-btn" id="drawClear">🧽 Fresh page</button>
+            <span class="confirm" id="drawConfirm" hidden>Start a fresh page?
+              <button class="tool-btn" id="drawClearYes">Yes</button><button class="tool-btn" id="drawClearNo">Keep drawing</button></span>
+            <button class="tool-btn finish" data-finish="draw">I'm finished <span aria-hidden="true">♥</span></button>
+          </div>
+          <div class="work" id="drawWork">
+            <canvas id="drawCanvas" width="1200" height="800" tabindex="0" aria-label="Drawing paper. With the keyboard: arrow keys move the brush, Space lifts or lowers it."></canvas>
+            <div id="drawCursor" hidden></div>
+          </div>
+          <p class="hint">Draw with your finger or mouse. Keyboard: arrows move the brush, Space puts it down or lifts it up.</p>
+        </section>
+
+        <!-- Build-a-Scene -->
+        <section class="act-panel" data-panel="scene" hidden>
+          <div class="tools">
+            <div class="scene-tray" id="sceneTray" aria-label="Pieces to add"></div>
+          </div>
+          <div class="tools">
+            <button class="tool-btn" id="sceneBigger" disabled>➕ Bigger</button>
+            <button class="tool-btn" id="sceneSmaller" disabled>➖ Smaller</button>
+            <button class="tool-btn" id="sceneRemove" disabled>↩ Put back</button>
+            <button class="tool-btn" id="sceneClear">🧽 Empty scene</button>
+            <span class="confirm" id="sceneConfirm" hidden>Put every piece back?
+              <button class="tool-btn" id="sceneClearYes">Yes</button><button class="tool-btn" id="sceneClearNo">Keep them</button></span>
+            <button class="tool-btn finish" data-finish="scene">I'm finished <span aria-hidden="true">♥</span></button>
+          </div>
+          <div class="work" id="sceneWork">
+            <div id="sceneBoard" aria-label="Your scene"><div class="hill"></div><div class="empty-note" id="sceneEmpty">Drag or tap a piece to add it here 🌼</div></div>
+          </div>
+          <p class="hint">Drag pieces around. Drop one back on the pieces row to put it away. Keyboard: Enter adds a piece; arrows move it, + and − resize, Delete puts it back.</p>
+        </section>
+
+        <!-- Story Builder -->
+        <section class="act-panel" data-panel="story" hidden>
+          <div class="story-wrap">
+            <fieldset class="story-group"><legend>1. Pick a character</legend><div class="choices" id="storyChar" role="radiogroup" aria-label="Character"></div></fieldset>
+            <fieldset class="story-group"><legend>2. Pick a place</legend><div class="choices" id="storyPlace" role="radiogroup" aria-label="Place"></div></fieldset>
+            <fieldset class="story-group"><legend>3. Pick a problem</legend><div class="choices" id="storyProblem" role="radiogroup" aria-label="Problem"></div></fieldset>
+            <div class="tools">
+              <button class="tool-btn" id="storyMake" style="background:#fff3d6">✨ Make my story</button>
+              <button class="tool-btn" id="storySurprise">🔀 Surprise me</button>
+              <button class="tool-btn finish" data-finish="story">I'm finished <span aria-hidden="true">♥</span></button>
+            </div>
+            <div id="storyOut" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <!-- Color-the-GrAngel -->
+        <section class="act-panel" data-panel="angel" hidden>
+          <div class="tools">
+            <div class="palette" id="angelPalette" role="radiogroup" aria-label="Colors"></div>
+            <button class="tool-btn" id="angelUndo" disabled>↶ Undo</button>
+            <button class="tool-btn" id="angelClear">🧽 Start over</button>
+            <span class="confirm" id="angelConfirm" hidden>Make Auzzie white again?
+              <button class="tool-btn" id="angelClearYes">Yes</button><button class="tool-btn" id="angelClearNo">Keep my colors</button></span>
+            <button class="tool-btn finish" data-finish="angel">I'm finished <span aria-hidden="true">♥</span></button>
+          </div>
+          <div class="work" id="angelWork"></div>
+          <p class="hint">Tap a color, then tap a part of Auzzie. Keyboard: Tab to a part, Enter to color it.</p>
+        </section>
+
+        <!-- Make-a-Melody -->
+        <section class="act-panel" data-panel="melody" hidden>
+          <p class="sound-note" id="melodySoundNote" hidden>🔇 Sound is off right now. Tap the 🔇 button at the top to hear your tune.</p>
+          <div class="work" style="flex-direction:column; gap:14px;">
+            <div class="pads" id="melodyPads"></div>
+          </div>
+          <div class="tools">
+            <span style="font-weight:700">Your tune:</span>
+            <div class="tune" id="melodyTune" aria-live="polite"><span class="empty">Tap a pad to start</span></div>
+          </div>
+          <div class="tools">
+            <button class="tool-btn" id="melodyPlay" disabled>▶ Play my tune</button>
+            <button class="tool-btn" id="melodyClear" disabled>🧽 New tune</button>
+            <button class="tool-btn finish" data-finish="melody">I'm finished <span aria-hidden="true">♥</span></button>
+          </div>
+          <p class="hint">Keyboard: number keys 1–8 play the pads too.</p>
+        </section>
+
+        <div class="act-done" id="actDone" hidden>
+          <div class="big-heart" aria-hidden="true"><i></i></div>
+          <p id="actDoneMsg"></p>
+          <div class="row">
+            <button class="tool-btn" id="actKeep">Keep playing</button>
+            <button class="tool-btn finish" id="actDoneBack" style="margin-left:0">← Back to the room</button>
+          </div>
+        </div>
+      </div>
+      <div id="dragLayer"></div>
     </div>
 
-    <div class="table">
-      <div class="leg l1"></div><div class="leg l2"></div>
-      <div class="bowl"><span></span><span></span><span></span></div>
-    </div>
-
-    <div id="exitHint">🚪 Click the door to go back outside</div>
-    <div id="exitDoor" role="button" tabindex="0" aria-label="Exit to the garden"><div class="glass"></div><div class="knob"></div></div>
-
-    <div id="grangelGroup">
-      <div id="grangel-shadow"></div>
-      <img id="grangel" src="gram_grangel.png" alt="GrAngel, a friendly waving heart" />
-      <div id="bubble">So cozy in here! 🎨</div>
-    </div>
-
-    <div id="player-shadow"></div>
-    <img id="player" alt="Your character" />
-
-    <a href="creativity-cottage.html" id="backBtn">← Outside</a>
-    <div id="pageTag">🎨 Creativity Cottage</div>
+    <div id="srStatus" class="sr-only" aria-live="polite"></div>
   </div>
 
 <script>
-  const stage=document.getElementById('stage');
-  const grangel=document.getElementById('grangel');
-  const bubble=document.getElementById('bubble');
-  const exitDoor=document.getElementById('exitDoor');
-  const exitHint=document.getElementById('exitHint');
+  const $=s=>document.querySelector(s);
+  const stage=$('#stage'), room=$('#room');
+  const grangel=$('#grangel'), bubble=$('#bubble');
+  const exitDoor=$('#exitDoor'), exitHint=$('#exitHint');
+  const srStatus=$('#srStatus');
 
-  function greet(){ bubble.classList.add('show'); clearTimeout(greet._t); greet._t=setTimeout(()=>bubble.classList.remove('show'),2600); }
+  // Browser storage can be unavailable (private mode, blocked site data) — never let that break the page.
+  const store={
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  };
+
+  /* ============================================================
+     GLOBAL CONTROLS — sound on/off and reduced motion, shared with
+     the village page through localStorage ('grangelSound' and
+     'grangelMotion'). With no saved choice, reduced motion follows
+     the device's prefers-reduced-motion setting.
+     ============================================================ */
+  const btnSound=$('#btnSound'), btnMotion=$('#btnMotion');
+  let soundOn=store.get('grangelSound')!=='off';
+  let reduced=store.get('grangelMotion') ? store.get('grangelMotion')==='reduced' : window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function applyControls(){
+    document.body.classList.toggle('reduced', reduced);
+    btnSound.textContent=soundOn?'🔊':'🔇';
+    btnSound.setAttribute('aria-pressed', String(soundOn));
+    btnSound.title=soundOn?'Sound is on':'Sound is off';
+    btnMotion.textContent=reduced?'🍃':'🌿';
+    btnMotion.setAttribute('aria-pressed', String(reduced));
+    $('#melodySoundNote').hidden=soundOn;
+  }
+  btnSound.addEventListener('click',()=>{
+    soundOn=!soundOn; store.set('grangelSound', soundOn?'on':'off');
+    if(!soundOn){ Melody.stop(); if(audioCtx) audioCtx.suspend(); }
+    applyControls();
+  });
+  btnMotion.addEventListener('click',()=>{ reduced=!reduced; store.set('grangelMotion', reduced?'reduced':'full'); applyControls(); });
+
+  // One shared, gentle audio context. Every sound goes through tone(), which stays silent when sound is off.
+  let audioCtx=null;
+  function audio(){
+    if(!soundOn) return null;
+    try{
+      audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+      if(audioCtx.state==='suspended') audioCtx.resume();
+      return audioCtx;
+    }catch(e){ return null; }
+  }
+  function tone(freq,{ dur=0.9, vol=0.12, when=0 }={}){
+    const ctx=audio(); if(!ctx) return;
+    const t=ctx.currentTime+when;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type='sine'; o.frequency.value=freq; o.connect(g); g.connect(ctx.destination);
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+0.03); g.gain.exponentialRampToValueAtTime(0.0008,t+dur);
+    o.start(t); o.stop(t+dur+0.05);
+  }
+  function chime(){ tone(523.25,{ dur:.5, vol:.1 }); tone(659.25,{ dur:.7, vol:.1, when:.12 }); }
+
+  /* ============================================================
+     AUZZIE — the GrAngel who hosts this cottage. Always airborne:
+     bobs gently (or holds still above the floor with reduced motion).
+     ============================================================ */
+  const auzzieLines=[
+    "Hi, I'm Auzzie! Welcome to Creativity Cottage. 🎨",
+    "Walk to a station, or tap one, to start creating!",
+    "Take your time. There's no rush in here.",
+    "Everything you make here is wonderful. 💛"
+  ];
+  let lineIdx=0;
+  function greet(){
+    bubble.textContent=auzzieLines[lineIdx]; lineIdx=(lineIdx+1)%auzzieLines.length;
+    bubble.classList.add('show'); chime();
+    clearTimeout(greet._t); greet._t=setTimeout(()=>bubble.classList.remove('show'),3400);
+  }
   grangel.addEventListener('click',greet);
   grangel.setAttribute('tabindex','0');
-  grangel.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') greet(); });
+  grangel.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); greet(); } });
+  // A hello on arrival (no sound until the child interacts).
+  bubble.classList.add('show'); lineIdx=1; greet._t=setTimeout(()=>bubble.classList.remove('show'),4200);
 
   function exitCottage(){ window.location.href='creativity-cottage.html'; }
   exitDoor.addEventListener('click', exitCottage);
-  exitDoor.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') exitCottage(); });
-
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+  exitDoor.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); exitCottage(); } });
 
   // A little string of bunting flags across the ceiling.
   (function drawBunting(){
-    const el=document.getElementById('bunting');
+    const el=$('#bunting');
     const w=el.clientWidth || window.innerWidth*0.84;
     const colors=['#e79ac0','#b79ad6','#e7c877','#7fb06a'];
     let svg=`<svg viewBox="0 0 ${w} 30" preserveAspectRatio="none">`;
@@ -223,46 +647,57 @@
 
   /* ============================================================
      PLAYABLE CHARACTER — carries the same boy/girl choice over
-     from earlier pages; W A S D moves, bounded to the room floor.
+     from earlier pages; W A S D / arrows move, bounded to the room
+     floor. Tapping the floor (or a station) walks there — handy on
+     phones and tablets. With reduced motion, a tap fades the
+     character to the spot instead of walking.
      ============================================================ */
   const CHAR_SRC={ boy:'boy.png', girl:'girl.png' };
-  const player=document.getElementById('player');
-  const playerShadow=document.getElementById('player-shadow');
+  const player=$('#player'), playerShadow=$('#player-shadow');
 
-  const px={ x: Math.round(window.innerWidth*0.5), y: Math.round(window.innerHeight*0.86) };
+  const px={ x: Math.round(window.innerWidth*0.5), y: Math.round(window.innerHeight*0.72) }; // just inside the door, clear of every station
   function groundBounds(){
-    return { minX:60, maxX:window.innerWidth-60, minY:window.innerHeight*0.66, maxY:window.innerHeight-20 };
+    return { minX:40, maxX:window.innerWidth-40, minY:window.innerHeight*0.66, maxY:window.innerHeight-44 };
   }
+  function clampToGround(p){ const b=groundBounds(); return { x:Math.min(b.maxX,Math.max(b.minX,p.x)), y:Math.min(b.maxY,Math.max(b.minY,p.y)) }; }
   function placePlayer(){
     player.style.left=(px.x-26)+'px'; player.style.top=(px.y-39)+'px';
     playerShadow.style.left=(px.x-20)+'px'; playerShadow.style.top=(px.y+32)+'px';
+    // Simple depth: whoever's feet are lower on screen is drawn in front.
+    player.style.zIndex=Math.round(px.y+39); playerShadow.style.zIndex=Math.round(px.y+38);
   }
   function activatePlayer(kind){
     player.src=CHAR_SRC[kind]||CHAR_SRC.boy;
     player.classList.add('active'); playerShadow.classList.add('active');
     placePlayer();
   }
-  const savedChar=localStorage.getItem('grangelChar');
+  const savedChar=store.get('grangelChar');
   activatePlayer(savedChar && CHAR_SRC[savedChar] ? savedChar : 'boy');
 
+  const MOVE_KEYS=['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'];
   const keys=new Set();
   window.addEventListener('keydown', e=>{
+    if(activityOpen) return;
     const k=e.key.toLowerCase();
-    if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){ keys.add(k); e.preventDefault(); }
+    const t=e.target;
+    if(MOVE_KEYS.includes(k) && !(t && t.matches && t.matches('input,textarea'))){ keys.add(k); e.preventDefault(); walkTarget=null; tappedStation=null; }
+    else if(e.key==='Enter' && promptStation && (t===document.body || t===null)){ openActivity(promptStation.id); }
   });
   window.addEventListener('keyup', e=>{ keys.delete(e.key.toLowerCase()); });
+  window.addEventListener('blur', ()=>keys.clear());
 
   // GrAngel tags along, always computed directly from the player's CURRENT (already-
   // clamped) position rather than accumulated deltas — accumulation was the earlier
   // bug: it kept nudging GrAngel by the intended movement even on frames where the
   // player was stuck at a wall and hadn't actually moved, so they'd drift apart.
-  const grangelGroup=document.getElementById('grangelGroup');
-  const GRANGEL_GAP={ x:-70, y:-70 }; // ~1 inch, diagonally up-left of the character
+  const grangelGroup=$('#grangelGroup');
+  const GRANGEL_GAP={ x:-84, y:-80 }; // diagonally up-left of the character, always airborne
   let grangelHome=null;
   function updateGrangelPosition(){
     grangelGroup.style.transform=`translate(${px.x+GRANGEL_GAP.x-grangelHome.x}px, ${px.y+GRANGEL_GAP.y-grangelHome.y}px)`;
   }
   function captureGrangelHome(){
+    grangelGroup.style.transform='';
     const r=grangel.getBoundingClientRect();
     grangelHome={ x:r.left+r.width/2, y:r.top+r.height/2 };
     updateGrangelPosition();
@@ -271,34 +706,703 @@
 
   function updateDoorProximity(){
     const dr=exitDoor.getBoundingClientRect();
-    const dx=dr.left+dr.width/2, dy=dr.top+dr.height/2;
-    const dist=Math.hypot(px.x-dx, px.y-dy);
-    const near=dist<140;
+    const dx=dr.left+dr.width/2, dy=dr.bottom;
+    const near=Math.hypot(px.x-dx, px.y-dy)<130;
     exitDoor.classList.toggle('near', near);
     exitHint.classList.toggle('show', near);
   }
-  updateDoorProximity();
+
+  // Walk (or, with reduced motion, fade) to a point on the floor.
+  let walkTarget=null;
+  function goTo(p){
+    const t=clampToGround(p);
+    if(reduced){
+      walkTarget=null;
+      player.classList.add('fading'); playerShadow.classList.add('fading');
+      setTimeout(()=>{
+        px.x=t.x; px.y=t.y; afterMove();
+        player.classList.remove('fading'); playerShadow.classList.remove('fading');
+      },200);
+    } else {
+      walkTarget=t;
+    }
+  }
+  room.addEventListener('click', e=>{
+    if(!e.target.closest('.floor,.rug')) return;
+    tappedStation=null;
+    goTo({ x:e.clientX, y:e.clientY });
+  });
+
+  /* ============================================================
+     STATIONS — walk up to one (or tap it) and a "Zoom in & play"
+     prompt appears above it; choosing the prompt opens the activity.
+     ============================================================ */
+  const STATIONS=[
+    { id:'draw',   name:'Color & Create',    icon:'🎨', host:"Pick a color and draw anything you like. There's no wrong way!", done:"What a beautiful picture! I love the colors you chose." },
+    { id:'scene',  name:'Build-a-Scene',     icon:'🌳', host:"Drag pieces onto the picture to build your very own little world.", done:"What a cozy little world you made. I'd love to visit!" },
+    { id:'story',  name:'Story Builder',     icon:'📖', host:"Pick a character, a place and a problem, and we'll make a silly story together.", done:"What a wonderful story. You're a great storyteller!" },
+    { id:'angel',  name:'Color-the-GrAngel', icon:'🖍️', host:"Tap a color, then tap any part of me to color it. Any colors you like!", done:"I look so colorful! Thank you for coloring me." },
+    { id:'melody', name:'Make-a-Melody',     icon:'🎵', host:"Tap the pads to make a gentle tune. Every note sounds nice together.", done:"What a lovely tune. That made my heart happy!" },
+  ];
+  STATIONS.forEach(s=>{
+    s.el=document.querySelector(`.station[data-station="${s.id}"]`);
+    s.el.setAttribute('aria-label', `${s.name} station`);
+  });
+  const byId=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
+
+  // The spot on the floor where the avatar "arrives" at a station: the station's base, kept walkable.
+  function stationSpot(s){
+    const r=s.el.getBoundingClientRect();
+    return clampToGround({ x:r.left+r.width/2, y:r.bottom-8 });
+  }
+  function layoutStations(){
+    STATIONS.forEach(s=>{ s.el.style.zIndex=Math.round(s.el.getBoundingClientRect().bottom); });
+  }
+
+  const playPrompt=$('#playPrompt');
+  let nearStation=null, tappedStation=null, promptStation=null;
+  function updateStations(){
+    nearStation=null;
+    let best=100;
+    STATIONS.forEach(s=>{
+      const p=stationSpot(s);
+      const d=Math.hypot(px.x-p.x, px.y-p.y);
+      if(d<best){ best=d; nearStation=s; }
+    });
+    const next=tappedStation||nearStation; // a tapped station keeps the prompt while walking past others
+    STATIONS.forEach(s=>s.el.classList.toggle('near', s===next));
+    if(next!==promptStation){
+      promptStation=next;
+      if(next){ srStatus.textContent=`${next.name}. Press Enter or choose Zoom in and play.`; }
+    }
+    if(promptStation){
+      const r=promptStation.el.querySelector('.st-label').getBoundingClientRect();
+      playPrompt.textContent=`🔍 Zoom in & play: ${promptStation.name}`;
+      playPrompt.style.left=Math.min(window.innerWidth-150, Math.max(150, r.left+r.width/2))+'px';
+      // Above the station's label — or above the avatar, if it's standing higher up (front-row stations).
+      const top = promptStation===nearStation ? Math.min(r.top-10, px.y-50) : r.top-10;
+      playPrompt.style.top=Math.max(70, top)+'px';
+      playPrompt.classList.add('show');
+    } else {
+      playPrompt.classList.remove('show');
+    }
+  }
+  playPrompt.addEventListener('click', ()=>{ if(promptStation) openActivity(promptStation.id); });
+
+  STATIONS.forEach(s=>{
+    s.el.addEventListener('click', ()=>{ tappedStation=s; updateStations(); goTo(stationSpot(s)); });
+    s.el.addEventListener('keydown', e=>{
+      if(e.key==='Enter'||e.key===' '){
+        e.preventDefault(); e.stopPropagation();
+        tappedStation=s; goTo(stationSpot(s)); updateStations();
+        playPrompt.focus();
+      }
+    });
+  });
+
+  function afterMove(){ placePlayer(); updateDoorProximity(); updateStations(); updateGrangelPosition(); }
 
   const SPEED=4;
   function tick(){
-    if(player.classList.contains('active')){
+    if(player.classList.contains('active') && !activityOpen){
       let dx=0, dy=0;
       if(keys.has('w')||keys.has('arrowup')) dy-=1;
       if(keys.has('s')||keys.has('arrowdown')) dy+=1;
-      if(keys.has('a')||keys.has('arrowleft')){ dx-=1; player.style.transform='scaleX(-1)'; }
-      if(keys.has('d')||keys.has('arrowright')){ dx+=1; player.style.transform='scaleX(1)'; }
+      if(keys.has('a')||keys.has('arrowleft')) dx-=1;
+      if(keys.has('d')||keys.has('arrowright')) dx+=1;
+      if(!dx && !dy && walkTarget){
+        const ddx=walkTarget.x-px.x, ddy=walkTarget.y-px.y, dist=Math.hypot(ddx,ddy);
+        if(dist<=SPEED*1.5){ px.x=walkTarget.x; px.y=walkTarget.y; walkTarget=null; afterMove(); }
+        else { dx=ddx/dist; dy=ddy/dist; }
+      }
       if(dx||dy){
+        if(dx<0) player.style.transform='scaleX(-1)';
+        if(dx>0) player.style.transform='scaleX(1)';
         const len=Math.hypot(dx,dy)||1;
-        const b=groundBounds();
-        px.x=Math.min(b.maxX,Math.max(b.minX, px.x+(dx/len)*SPEED));
-        px.y=Math.min(b.maxY,Math.max(b.minY, px.y+(dy/len)*SPEED));
-        placePlayer();
-        updateDoorProximity();
-        updateGrangelPosition();
+        const p=clampToGround({ x:px.x+(dx/len)*SPEED, y:px.y+(dy/len)*SPEED });
+        if(walkTarget && p.x===px.x && p.y===px.y) walkTarget=null; // stuck against a wall
+        px.x=p.x; px.y=p.y;
+        afterMove();
       }
     }
     requestAnimationFrame(tick);
   }
+
+  let resizeTimer;
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer=setTimeout(()=>{ const p=clampToGround(px); px.x=p.x; px.y=p.y; layoutStations(); captureGrangelHome(); afterMove(); },120);
+  });
+
+  /* ============================================================
+     ACTIVITY VIEW — open / close. Everything the child made stays
+     in its panel while closed, so coming back picks up where they
+     left off; the room (and the avatar's spot) is untouched.
+     ============================================================ */
+  const activity=$('#activity'), actCard=$('#actCard'), actDone=$('#actDone');
+  const panels=Object.fromEntries([...document.querySelectorAll('.act-panel')].map(p=>[p.dataset.panel,p]));
+  let activityOpen=false, currentId=null, closeTimer=null;
+
+  function openActivity(id){
+    const s=byId[id]; if(!s || activityOpen) return;
+    clearTimeout(closeTimer);
+    activityOpen=true; currentId=id; keys.clear(); walkTarget=null;
+    $('#actTitle').textContent=`${s.icon} ${s.name}`;
+    $('#actHostSays').textContent=s.host;
+    Object.entries(panels).forEach(([k,p])=>p.hidden=(k!==id));
+    actDone.hidden=true;
+    activity.hidden=false;
+    // Grow the card out of the station it belongs to.
+    const sr=s.el.getBoundingClientRect(), ar=activity.getBoundingClientRect();
+    actCard.style.transformOrigin=`${sr.left+sr.width/2-ar.left-actCard.offsetLeft}px ${sr.top+sr.height/2-ar.top-actCard.offsetTop}px`;
+    void actCard.offsetWidth;
+    activity.classList.add('show');
+    room.inert=true;
+    ACTIVITIES[id]?.onOpen?.();
+    $('#actBack').focus();
+  }
+  function closeActivity(){
+    if(!activityOpen) return;
+    const s=byId[currentId];
+    ACTIVITIES[currentId]?.onClose?.();
+    activity.classList.remove('show');
+    room.inert=false;
+    activityOpen=false;
+    closeTimer=setTimeout(()=>{ activity.hidden=true; }, reduced?360:420);
+    if(s) s.el.focus({ preventScroll:true });
+    srStatus.textContent=`Back in the room at ${s ? s.name : 'the cottage'}.`;
+  }
+  $('#actBack').addEventListener('click', closeActivity);
+  $('#actDoneBack').addEventListener('click', closeActivity);
+  $('#actKeep').addEventListener('click', ()=>{ actDone.hidden=true; panels[currentId].querySelector('[data-finish]').focus(); });
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape' && activityOpen){ e.preventDefault(); closeActivity(); } });
+
+  // Finishing is just a warm message and a red heart — no score, nothing to "pass".
+  document.querySelectorAll('[data-finish]').forEach(btn=>btn.addEventListener('click', ()=>{
+    const s=byId[btn.dataset.finish];
+    $('#actDoneMsg').textContent=`${s.done} ❤️`;
+    actDone.hidden=false;
+    s.el.querySelector('.done-heart').hidden=false;
+    chime();
+    $('#actKeep').focus();
+  }));
+
+  // Fit a fixed-shape work surface (canvas / scene board) inside its area, keeping its proportions.
+  function fitBox(el, work, ratio){
+    const w=work.clientWidth, h=work.clientHeight;
+    if(!w || !h) return;
+    const bw = w/h > ratio ? h*ratio : w;
+    el.style.width=bw+'px'; el.style.height=(bw/ratio)+'px';
+  }
+
+  // Shared color palette (used by Color & Create and Color-the-GrAngel).
+  const PALETTE=[
+    ['#e26d6d','Red'],['#f0a35e','Orange'],['#f2d16b','Yellow'],['#9fcf7f','Green'],['#6fb7a8','Teal'],
+    ['#7fb6e0','Blue'],['#9b8fe0','Purple'],['#e79ac0','Pink'],['#b98a5e','Brown'],['#4a352a','Dark brown'],['#ffffff','White']
+  ];
+  function buildPalette(container, onPick){
+    PALETTE.forEach(([hex,name],i)=>{
+      const b=document.createElement('button');
+      b.className='swatch'; b.style.background=hex;
+      b.setAttribute('role','radio'); b.setAttribute('aria-label', name);
+      b.setAttribute('aria-checked', i===0?'true':'false');
+      b.tabIndex = i===0 ? 0 : -1;
+      b.addEventListener('click',()=>{ select(i); onPick(hex,name); });
+      container.appendChild(b);
+    });
+    const btns=[...container.children];
+    function select(i){ btns.forEach((b,j)=>{ b.setAttribute('aria-checked', j===i?'true':'false'); b.tabIndex = j===i ? 0 : -1; }); }
+    // Arrow keys move between colors, like a radio group.
+    container.addEventListener('keydown', e=>{
+      const i=btns.indexOf(document.activeElement); if(i<0) return;
+      let n=null;
+      if(e.key==='ArrowRight'||e.key==='ArrowDown') n=(i+1)%btns.length;
+      if(e.key==='ArrowLeft'||e.key==='ArrowUp') n=(i-1+btns.length)%btns.length;
+      if(n!==null){ e.preventDefault(); btns[n].focus(); btns[n].click(); }
+    });
+  }
+
+  /* ============================================================
+     1) COLOR & CREATE — free drawing. Fixed 1200×800 paper scaled
+     to fit, so resizing the window never stretches or crops it.
+     ============================================================ */
+  const Draw=(()=>{
+    const cv=$('#drawCanvas'), ctx=cv.getContext('2d'), work=$('#drawWork'), cursor=$('#drawCursor');
+    const W=cv.width, H=cv.height, PAPER='#fffdf8';
+    let color=PALETTE[0][0], size=18, drawing=false, last=null;
+    const undo=[];
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    function paper(){ ctx.fillStyle=PAPER; ctx.fillRect(0,0,W,H); }
+    paper();
+
+    buildPalette($('#drawPalette'), hex=>{ color=hex; });
+    const SIZES=[[8,'Thin brush',8],[18,'Medium brush',14],[38,'Big brush',22]];
+    const sizeBtns=SIZES.map(([v,label,dot],i)=>{
+      const b=document.createElement('button');
+      b.className='size-btn'; b.setAttribute('role','radio'); b.setAttribute('aria-label',label);
+      b.setAttribute('aria-checked', v===size?'true':'false');
+      b.innerHTML=`<i style="width:${dot}px;height:${dot}px"></i>`;
+      b.addEventListener('click',()=>{ size=v; sizeBtns.forEach(x=>x.setAttribute('aria-checked', x===b?'true':'false')); });
+      $('#drawSizes').appendChild(b);
+      return b;
+    });
+
+    function snapshot(){ undo.push(ctx.getImageData(0,0,W,H)); if(undo.length>20) undo.shift(); $('#drawUndo').disabled=false; }
+    function dot(p){ ctx.fillStyle=color; ctx.beginPath(); ctx.arc(p.x,p.y,size/2,0,Math.PI*2); ctx.fill(); }
+    function seg(a,b){ ctx.strokeStyle=color; ctx.lineWidth=size; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+    function pos(e){ const r=cv.getBoundingClientRect(); return { x:(e.clientX-r.left)*W/r.width, y:(e.clientY-r.top)*H/r.height }; }
+
+    cv.addEventListener('pointerdown', e=>{
+      if(e.button!==undefined && e.button!==0) return;
+      e.preventDefault(); cv.setPointerCapture(e.pointerId);
+      cursor.hidden=true; kb.down=false;
+      snapshot(); drawing=true; last=pos(e); dot(last);
+    });
+    cv.addEventListener('pointermove', e=>{
+      if(!drawing) return;
+      const evs=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      (evs.length?evs:[e]).forEach(ev=>{ const p=pos(ev); seg(last,p); last=p; });
+    });
+    const stop=()=>{ drawing=false; last=null; };
+    cv.addEventListener('pointerup', stop); cv.addEventListener('pointercancel', stop);
+
+    // Keyboard drawing: a brush cursor that arrow keys move; Space puts it down / lifts it.
+    const kb={ x:W/2, y:H/2, down:false };
+    function showCursor(){
+      const r=cv.getBoundingClientRect(), wr=work.getBoundingClientRect(), s=r.width/W;
+      cursor.hidden=false;
+      cursor.style.left=(r.left-wr.left+kb.x*s)+'px'; cursor.style.top=(r.top-wr.top+kb.y*s)+'px';
+      const d=Math.max(10,size*s); cursor.style.width=d+'px'; cursor.style.height=d+'px';
+      cursor.classList.toggle('down', kb.down);
+    }
+    cv.addEventListener('keydown', e=>{
+      const step=e.shiftKey?40:14;
+      const moves={ ArrowUp:[0,-step], ArrowDown:[0,step], ArrowLeft:[-step,0], ArrowRight:[step,0] };
+      if(moves[e.key]){
+        e.preventDefault();
+        const a={ x:kb.x, y:kb.y };
+        kb.x=Math.min(W,Math.max(0,kb.x+moves[e.key][0])); kb.y=Math.min(H,Math.max(0,kb.y+moves[e.key][1]));
+        if(kb.down) seg(a,kb);
+        showCursor();
+      } else if(e.key===' '){
+        e.preventDefault();
+        kb.down=!kb.down;
+        if(kb.down){ snapshot(); dot(kb); }
+        showCursor();
+        srStatus.textContent=kb.down?'Brush down — drawing.':'Brush lifted.';
+      }
+    });
+    cv.addEventListener('blur', ()=>{ cursor.hidden=true; kb.down=false; });
+
+    $('#drawUndo').addEventListener('click',()=>{ const img=undo.pop(); if(img) ctx.putImageData(img,0,0); $('#drawUndo').disabled=!undo.length; });
+    $('#drawClear').addEventListener('click',()=>{ $('#drawConfirm').hidden=false; $('#drawClear').hidden=true; $('#drawClearNo').focus(); });
+    function hideConfirm(){ $('#drawConfirm').hidden=true; $('#drawClear').hidden=false; }
+    $('#drawClearNo').addEventListener('click',()=>{ hideConfirm(); $('#drawClear').focus(); });
+    $('#drawClearYes').addEventListener('click',()=>{ snapshot(); paper(); hideConfirm(); $('#drawClear').focus(); });
+
+    const fit=()=>{ fitBox(cv, work, W/H); if(!cursor.hidden) showCursor(); };
+    new ResizeObserver(fit).observe(work);
+    return { onOpen:fit, onClose(){ hideConfirm(); stop(); } };
+  })();
+
+  /* ============================================================
+     2) BUILD-A-SCENE — drag (or tap) pieces from the row onto the
+     scene, move them around, resize them, or put them back.
+     Positions are stored as % of the board, so it scales cleanly.
+     ============================================================ */
+  const Scene=(()=>{
+    const board=$('#sceneBoard'), work=$('#sceneWork'), tray=$('#sceneTray'), dragLayer=$('#dragLayer');
+    const PIECES={
+      tree:    { label:'Tree',          w:12, h:15, html:'<span class="pc pc-tree"><i class="trunk"></i><i class="canopy"></i></span>' },
+      bush:    { label:'Bush',          w:10, h:6,  html:'<span class="pc pc-bush"></span>' },
+      pink:    { label:'Pink flower',   w:3.6,h:9,  html:'<span class="pc pc-flower" style="--fc:#e79ac0"><i class="stem"></i><i class="bloom"></i></span>' },
+      purple:  { label:'Purple flower', w:3.6,h:9,  html:'<span class="pc pc-flower" style="--fc:#b79ad6"><i class="stem"></i><i class="bloom"></i></span>' },
+      yellow:  { label:'Yellow flower', w:3.6,h:9,  html:'<span class="pc pc-flower" style="--fc:#f2c14e"><i class="stem"></i><i class="bloom"></i></span>' },
+      heart:   { label:'Heart',         w:6,  h:6,  html:'<span class="pc pc-heart"><i></i></span>' },
+      sun:     { label:'Sun',           w:10, h:10, html:'<span class="pc pc-sun"></span>' },
+      cloud:   { label:'Cloud',         w:14, h:5,  html:'<span class="pc pc-cloud"></span>' },
+      rainbow: { label:'Rainbow',       w:18, h:9,  html:'<span class="pc pc-rainbow"></span>' },
+      grangel: { label:'GrAngel',       w:12, h:16, html:'<span class="pc pc-grangel"><i></i><img src="gram_grangel.png" alt="" /></span>' },
+    };
+    const DEFAULT_SPOT={ sun:[16,20], cloud:[60,16], rainbow:[78,30], grangel:[50,38] };
+    let selected=null, zTop=1, addCount=0;
+    const btns={ bigger:$('#sceneBigger'), smaller:$('#sceneSmaller'), remove:$('#sceneRemove') };
+
+    function unitPx(){ return board.clientWidth/100; }
+    function updateEmpty(){ $('#sceneEmpty').style.opacity = board.querySelector('.piece') ? 0 : 1; }
+    function select(p){
+      if(selected) selected.classList.remove('selected');
+      selected=p;
+      if(p){ p.classList.add('selected'); p.style.zIndex=++zTop; }
+      Object.values(btns).forEach(b=>b.disabled=!p);
+    }
+    function setPos(p,x,y){ p.dataset.x=x; p.dataset.y=y; p.style.left=x+'%'; p.style.top=y+'%'; }
+    function setScale(p,s){ p.dataset.s=s; p.style.setProperty('--ps', s); }
+
+    function makePiece(type){
+      const def=PIECES[type];
+      const p=document.createElement('div');
+      p.className='piece'; p.dataset.type=type; p.tabIndex=0;
+      p.setAttribute('role','button');
+      p.setAttribute('aria-label', `${def.label} in your scene. Arrow keys move it, plus and minus resize it, Delete puts it back.`);
+      p.innerHTML=def.html;
+      setScale(p,1);
+      return p;
+    }
+    function addToBoard(p,x,y){
+      board.appendChild(p); setPos(p, Math.round(x*10)/10, Math.round(y*10)/10);
+      attachPieceEvents(p); select(p); updateEmpty();
+    }
+    function removePiece(p){
+      if(selected===p) select(null);
+      p.remove(); updateEmpty();
+      srStatus.textContent='Piece put back.';
+    }
+    function clampPct(v){ return Math.min(100,Math.max(0,v)); }
+
+    // Tray: tap/Enter adds a piece at a friendly default spot; dragging places it where it's dropped.
+    Object.entries(PIECES).forEach(([type,def])=>{
+      const b=document.createElement('button');
+      b.className='tray-btn'; b.setAttribute('aria-label', `Add ${def.label}`); b.title=def.label;
+      b.innerHTML=def.html;
+      b.firstElementChild.style.fontSize=(44/Math.max(def.w,def.h))+'px';
+      b.addEventListener('click', ()=>{
+        if(b._dragged){ b._dragged=false; return; }
+        const spot=DEFAULT_SPOT[type] || [22+((addCount*17)%60), 70+((addCount*7)%16)];
+        addCount++;
+        const p=makePiece(type); addToBoard(p, spot[0], spot[1]); p.focus();
+        srStatus.textContent=`${def.label} added to your scene.`;
+      });
+      b.addEventListener('pointerdown', e=>startTrayDrag(e, type, b));
+      tray.appendChild(b);
+    });
+
+    function overRect(el,e){ const r=el.getBoundingClientRect(); return e.clientX>=r.left && e.clientX<=r.right && e.clientY>=r.top && e.clientY<=r.bottom; }
+    function boardPct(e){ const r=board.getBoundingClientRect(); return { x:(e.clientX-r.left)/r.width*100, y:(e.clientY-r.top)/r.height*100 }; }
+
+    function startTrayDrag(e, type, btn){
+      if(e.button!==undefined && e.button!==0) return;
+      const sx=e.clientX, sy=e.clientY;
+      let ghost=null;
+      const move=ev=>{
+        if(!ghost && Math.hypot(ev.clientX-sx, ev.clientY-sy)<6) return;
+        if(!ghost){
+          ghost=makePiece(type);
+          ghost.style.fontSize=unitPx()+'px';
+          ghost.style.position='fixed';
+          dragLayer.appendChild(ghost);
+        }
+        ghost.style.left=ev.clientX+'px'; ghost.style.top=ev.clientY+'px';
+      };
+      const up=ev=>{
+        window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); window.removeEventListener('pointercancel',up);
+        if(!ghost) return; // a tap — the click handler adds it
+        btn._dragged=true; setTimeout(()=>btn._dragged=false,0);
+        ghost.remove();
+        if(overRect(board,ev)){
+          const p=makePiece(type), q=boardPct(ev);
+          addToBoard(p, q.x, q.y);
+          srStatus.textContent=`${PIECES[type].label} added to your scene.`;
+        }
+      };
+      window.addEventListener('pointermove',move); window.addEventListener('pointerup',up); window.addEventListener('pointercancel',up);
+    }
+
+    function attachPieceEvents(p){
+      p.addEventListener('pointerdown', e=>{
+        if(e.button!==undefined && e.button!==0) return;
+        e.preventDefault(); e.stopPropagation();
+        select(p); p.focus({ preventScroll:true });
+        p.setPointerCapture(e.pointerId);
+        const r=board.getBoundingClientRect();
+        const off={ x:(e.clientX-r.left)/r.width*100-parseFloat(p.dataset.x), y:(e.clientY-r.top)/r.height*100-parseFloat(p.dataset.y) };
+        const move=ev=>{
+          const q=boardPct(ev);
+          setPos(p, Math.min(104,Math.max(-4,q.x-off.x)), Math.min(104,Math.max(-4,q.y-off.y)));
+          tray.classList.toggle('drop-ok', overRect(tray,ev));
+        };
+        const up=ev=>{
+          p.removeEventListener('pointermove',move); p.removeEventListener('pointerup',up); p.removeEventListener('pointercancel',up);
+          tray.classList.remove('drop-ok');
+          if(overRect(tray,ev)) removePiece(p);
+          else setPos(p, clampPct(parseFloat(p.dataset.x)), clampPct(parseFloat(p.dataset.y)));
+        };
+        p.addEventListener('pointermove',move); p.addEventListener('pointerup',up); p.addEventListener('pointercancel',up);
+      });
+      p.addEventListener('focus', ()=>select(p));
+      p.addEventListener('keydown', e=>{
+        const step=e.shiftKey?6:2;
+        const moves={ ArrowUp:[0,-step], ArrowDown:[0,step], ArrowLeft:[-step,0], ArrowRight:[step,0] };
+        if(moves[e.key]){
+          e.preventDefault();
+          setPos(p, clampPct(parseFloat(p.dataset.x)+moves[e.key][0]), clampPct(parseFloat(p.dataset.y)+moves[e.key][1]));
+        } else if(e.key==='+'||e.key==='='){ e.preventDefault(); resize(p,1.15); }
+        else if(e.key==='-'||e.key==='_'){ e.preventDefault(); resize(p,1/1.15); }
+        else if(e.key==='Delete'||e.key==='Backspace'){ e.preventDefault(); removePiece(p); tray.querySelector('.tray-btn').focus(); }
+      });
+    }
+    function resize(p,f){ setScale(p, Math.min(3,Math.max(.4, Math.round(parseFloat(p.dataset.s)*f*100)/100))); }
+    btns.bigger.addEventListener('click',()=>selected&&resize(selected,1.15));
+    btns.smaller.addEventListener('click',()=>selected&&resize(selected,1/1.15));
+    btns.remove.addEventListener('click',()=>{ if(selected){ removePiece(selected); } });
+    board.addEventListener('pointerdown', e=>{ if(e.target===board || e.target.classList.contains('hill')) select(null); });
+
+    $('#sceneClear').addEventListener('click',()=>{ $('#sceneConfirm').hidden=false; $('#sceneClear').hidden=true; $('#sceneClearNo').focus(); });
+    function hideConfirm(){ $('#sceneConfirm').hidden=true; $('#sceneClear').hidden=false; }
+    $('#sceneClearNo').addEventListener('click',()=>{ hideConfirm(); $('#sceneClear').focus(); });
+    $('#sceneClearYes').addEventListener('click',()=>{ board.querySelectorAll('.piece').forEach(p=>p.remove()); select(null); updateEmpty(); hideConfirm(); $('#sceneClear').focus(); });
+
+    const fit=()=>{ fitBox(board, work, 1.5); board.style.fontSize=unitPx()+'px'; };
+    new ResizeObserver(fit).observe(work);
+    return { onOpen:fit, onClose(){ hideConfirm(); } };
+  })();
+
+  /* ============================================================
+     3) STORY BUILDER — character + place + problem → a short, silly
+     story that always ends kindly. Anything not picked becomes a
+     surprise; there are no wrong choices.
+     ============================================================ */
+  const Story=(()=>{
+    const CHARS=[
+      { e:'🪽', label:'Auzzie the GrAngel', full:'Auzzie the GrAngel', short:'Auzzie' },
+      { e:'🐉', label:'A sleepy dragon',    full:'a sleepy dragon named Puff', short:'Puff' },
+      { e:'🤖', label:'A tiny robot',       full:'a tiny robot named Bolt', short:'Bolt' },
+      { e:'🐰', label:'A brave bunny',      full:'a brave bunny named Clover', short:'Clover' },
+      { e:'🐢', label:'A wise turtle',      full:'a wise old turtle named Pebble', short:'Pebble' },
+      { e:'👵', label:'Gram',               full:'Gram', short:'Gram' },
+    ];
+    const PLACES=[
+      { e:'🌙', label:'The moon',             at:'on the moon' },
+      { e:'🥞', label:'A pancake forest',     at:'in a pancake forest' },
+      { e:'🐠', label:'Under the sea',        at:'at the bottom of the sea' },
+      { e:'🏰', label:'A bouncy castle',      at:'in a bouncy castle' },
+      { e:'🍭', label:'A candy cloud kingdom',at:'in a candy cloud kingdom' },
+      { e:'🎨', label:'Creativity Cottage',   at:'in Creativity Cottage' },
+    ];
+    const PROBLEMS=[
+      { e:'🧦', label:'Lost a favorite sock', what:'had lost one favorite stripy sock',
+        fix:'They looked under the pillows, behind the curtains, and inside a teapot. And there it was, being used as a sleeping bag by a very cozy mouse! The mouse said thank you and gave it back with a tiny bow.' },
+      { e:'🫧', label:'Sneezing bubbles', what:"couldn't stop sneezing bubbles",
+        fix:'So everyone popped the bubbles together, and each one went "plink!" like a tiny bell. Soon the sneezes turned into a happy little song.' },
+      { e:'☁️', label:'Marshmallow clouds', what:'noticed that all the clouds had turned into marshmallows',
+        fix:'So they had the biggest, fluffiest picnic ever, and shared a marshmallow with every bird in the sky.' },
+      { e:'🎩', label:'A giggly hat', what:'had a hat that would not stop giggling',
+        fix:'They told the hat a calm, sleepy story. The hat yawned, smiled, and settled down for a cozy nap.' },
+      { e:'🎶', label:'Forgot how to whistle', what:'forgot how to whistle',
+        fix:'A friendly bird showed them how: lips round, one soft little breath. Soon they were whistling a tune together.' },
+      { e:'🌧️', label:'A tiny rain cloud', what:'found a tiny rain cloud following them everywhere',
+        fix:'So they gave the little cloud a gentle hug, and it rained just enough to grow a rainbow of flowers.' },
+    ];
+    const TEMPLATES=[
+      (c,p,q)=>`Once upon a time, ${c.full} was having a lovely day ${p.at}. But then, oh no, ${c.short} ${q.what}! "Hmm," said ${c.short}, taking a slow, deep breath. "I can figure this out." ${q.fix} And from that day on, ${c.short} always remembered: when something goes wobbly, a calm breath and a good friend help a lot. The End.`,
+      (c,p,q)=>`One sunny morning ${p.at}, ${c.full} woke up with a big smile. Then something silly happened: ${c.short} ${q.what}! ${c.short} wasn't sure what to do, so they asked a friend for help. ${q.fix} Everyone laughed a warm, cozy laugh. The End.`,
+      (c,p,q)=>`Far, far away ${p.at} lived ${c.full}. One day, ${c.short} ${q.what}. "What a funny problem!" giggled ${c.short}. ${q.fix} And that was the silliest, sweetest day anyone ${p.at} had ever seen. The End.`,
+    ];
+    const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+    const pick={ char:null, place:null, problem:null };
+    let tIdx=0;
+
+    function group(container, list, key){
+      const btns=list.map((item,i)=>{
+        const b=document.createElement('button');
+        b.className='choice'; b.setAttribute('role','radio'); b.setAttribute('aria-checked','false');
+        b.tabIndex = i===0 ? 0 : -1;
+        b.innerHTML=`<span class="em" aria-hidden="true">${item.e}</span>${item.label}`;
+        b.addEventListener('click',()=>set(i));
+        container.appendChild(b);
+        return b;
+      });
+      function set(i){ pick[key]=list[i]; btns.forEach((b,j)=>{ b.setAttribute('aria-checked', j===i?'true':'false'); b.tabIndex = j===i ? 0 : -1; }); }
+      container.addEventListener('keydown', e=>{
+        const i=btns.indexOf(document.activeElement); if(i<0) return;
+        let n=null;
+        if(e.key==='ArrowRight'||e.key==='ArrowDown') n=(i+1)%btns.length;
+        if(e.key==='ArrowLeft'||e.key==='ArrowUp') n=(i-1+btns.length)%btns.length;
+        if(n!==null){ e.preventDefault(); btns[n].focus(); set(n); }
+      });
+      return { set, size:list.length };
+    }
+    const groups={ char:group($('#storyChar'),CHARS,'char'), place:group($('#storyPlace'),PLACES,'place'), problem:group($('#storyProblem'),PROBLEMS,'problem') };
+    const rand=n=>Math.floor(Math.random()*n);
+
+    function make(){
+      let surprised=false;
+      Object.entries(groups).forEach(([k,g])=>{ if(!pick[k]){ g.set(rand(g.size)); surprised=true; } });
+      const text=cap(TEMPLATES[tIdx%TEMPLATES.length](pick.char,pick.place,pick.problem));
+      tIdx++;
+      const out=$('#storyOut');
+      out.innerHTML='';
+      const card=document.createElement('div'); card.className='story-out';
+      card.innerHTML=`<h3>📖 Your story${surprised?' <small style="font-weight:400">(Auzzie picked a surprise for you!)</small>':''}</h3><p></p>`;
+      card.querySelector('p').textContent=text;
+      out.appendChild(card);
+      $('#storyMake').textContent='✨ Make another story';
+      card.scrollIntoView({ behavior: reduced?'auto':'smooth', block:'nearest' });
+      chime();
+    }
+    $('#storyMake').addEventListener('click', make);
+    $('#storySurprise').addEventListener('click', ()=>{ Object.values(groups).forEach(g=>g.set(rand(g.size))); make(); });
+    return {};
+  })();
+
+  /* ============================================================
+     4) COLOR-THE-GRANGEL — an outline of Auzzie (floating, feet off
+     the ground) with parts the child fills with any colors.
+     ============================================================ */
+  const Angel=(()=>{
+    const work=$('#angelWork');
+    const NS='http://www.w3.org/2000/svg';
+    // [id, label, shape]. "line" parts are thick strokes (arms, legs) colored by stroke.
+    const PARTS=[
+      ['wingL','Left wing','path','M98 128 C70 92 28 92 20 118 C14 138 32 150 46 150 C32 160 36 178 54 178 C46 190 62 204 82 194 C94 188 102 172 106 160 Z'],
+      ['wingR','Right wing','path','M202 128 C230 92 272 92 280 118 C286 138 268 150 254 150 C268 160 264 178 246 178 C254 190 238 204 218 194 C206 188 198 172 194 160 Z'],
+      ['legL','Left leg','line','M136 226 C134 242 132 254 128 266'],
+      ['legR','Right leg','line','M164 226 C168 238 172 248 176 258'],
+      ['shoeL','Left shoe','ellipse',[122,276,15,9]],
+      ['shoeR','Right shoe','ellipse',[180,268,15,9]],
+      ['armL','Waving arm','line','M92 166 C76 156 64 142 58 128'],
+      ['armR','Other arm','line','M208 168 C220 180 226 192 228 204'],
+      ['body','Heart body','path','M150 112 C150 84 122 66 96 76 C66 88 62 126 80 152 C98 178 130 204 150 236 C170 204 202 178 220 152 C238 126 234 88 204 76 C178 66 150 84 150 112 Z'],
+      ['handL','Waving hand','circle',[56,120,10]],
+      ['handR','Other hand','circle',[229,212,10]],
+      ['halo','Halo','path','M104 44 A46 14 0 1 0 196 44 A46 14 0 1 0 104 44 Z M120 44 A30 6 0 1 0 180 44 A30 6 0 1 0 120 44 Z'],
+      ['eyeL','Left eye','circle',[130,143,8]],
+      ['eyeR','Right eye','circle',[170,143,8]],
+      ['cheekL','Left cheek','circle',[112,170,8]],
+      ['cheekR','Right cheek','circle',[188,170,8]],
+    ];
+    const svg=document.createElementNS(NS,'svg');
+    svg.id='angelSvg'; svg.setAttribute('viewBox','0 0 300 330'); svg.setAttribute('role','group'); svg.setAttribute('aria-label','Auzzie the GrAngel coloring page');
+    const shadow=document.createElementNS(NS,'ellipse');
+    Object.entries({ cx:150, cy:314, rx:56, ry:8, fill:'rgba(0,0,0,.12)' }).forEach(([k,v])=>shadow.setAttribute(k,v));
+    svg.appendChild(shadow);
+    const g=document.createElementNS(NS,'g'); g.setAttribute('class','float'); svg.appendChild(g);
+
+    let color=PALETTE[0][0], colorName=PALETTE[0][1];
+    const fills={}, history=[];
+    const els={};
+    function el(tag, attrs){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); return e; }
+    PARTS.forEach(([id,label,kind,geo])=>{
+      let e;
+      if(kind==='line'){
+        g.appendChild(el('path',{ d:geo, fill:'none', stroke:'#4a352a', 'stroke-width':15, 'stroke-linecap':'round' })); // outline under the stroke
+        e=el('path',{ d:geo });
+        e.classList.add('line');
+      } else if(kind==='ellipse'){ e=el('ellipse',{ cx:geo[0], cy:geo[1], rx:geo[2], ry:geo[3] }); }
+      else if(kind==='circle'){ e=el('circle',{ cx:geo[0], cy:geo[1], r:geo[2] }); }
+      else { e=el('path',{ d:geo, 'fill-rule':'evenodd' }); }
+      e.classList.add('part');
+      e.setAttribute('tabindex','0'); e.setAttribute('role','button');
+      e.dataset.id=id; e.dataset.label=label;
+      els[id]=e; g.appendChild(e);
+      paint(id,'#ffffff','White');
+      e.addEventListener('click',()=>fill(id));
+      e.addEventListener('keydown',ev=>{ if(ev.key==='Enter'||ev.key===' '){ ev.preventDefault(); fill(id); } });
+      if(id==='eyeR'){
+        // Fixed face details drawn on top of the eyes (pupils, sparkle, smile) — not colorable.
+        [[130,145,3.6],[170,145,3.6]].forEach(([cx,cy,r])=>g.appendChild(el('circle',{ cx, cy, r, fill:'#2a1c12', 'pointer-events':'none' })));
+        [[127,140,1.8],[167,140,1.8]].forEach(([cx,cy,r])=>g.appendChild(el('circle',{ cx, cy, r, fill:'#fff', 'pointer-events':'none' })));
+        g.appendChild(el('path',{ d:'M136 172 Q150 186 164 172', fill:'none', stroke:'#4a352a', 'stroke-width':3.5, 'stroke-linecap':'round', 'pointer-events':'none' }));
+      }
+    });
+    work.appendChild(svg);
+
+    function paint(id,hex,name){
+      const e=els[id]; fills[id]=hex;
+      if(e.classList.contains('line')) e.style.stroke=hex; else e.style.fill=hex;
+      e.setAttribute('aria-label', `${e.dataset.label}, colored ${name.toLowerCase()}`);
+    }
+    function fill(id){
+      if(fills[id]===color) return;
+      history.push([id, fills[id], els[id].getAttribute('aria-label')]);
+      paint(id,color,colorName);
+      $('#angelUndo').disabled=false;
+    }
+    buildPalette($('#angelPalette'), (hex,name)=>{ color=hex; colorName=name; });
+    $('#angelUndo').addEventListener('click',()=>{
+      const h=history.pop(); if(!h) return;
+      const e=els[h[0]]; fills[h[0]]=h[1];
+      if(e.classList.contains('line')) e.style.stroke=h[1]; else e.style.fill=h[1];
+      e.setAttribute('aria-label', h[2]);
+      $('#angelUndo').disabled=!history.length;
+    });
+    $('#angelClear').addEventListener('click',()=>{ $('#angelConfirm').hidden=false; $('#angelClear').hidden=true; $('#angelClearNo').focus(); });
+    function hideConfirm(){ $('#angelConfirm').hidden=true; $('#angelClear').hidden=false; }
+    $('#angelClearNo').addEventListener('click',()=>{ hideConfirm(); $('#angelClear').focus(); });
+    $('#angelClearYes').addEventListener('click',()=>{
+      Object.keys(els).forEach(id=>{ if(fills[id]!=='#ffffff'){ history.push([id,fills[id],els[id].getAttribute('aria-label')]); paint(id,'#ffffff','White'); } });
+      $('#angelUndo').disabled=!history.length;
+      hideConfirm(); $('#angelClear').focus();
+    });
+    return { onClose:hideConfirm };
+  })();
+
+  /* ============================================================
+     5) MAKE-A-MELODY — 8 soft pads on a pentatonic scale, so any
+     order sounds gentle. Respects the global sound control: with
+     sound off the pads still glow, and a note explains how to hear.
+     ============================================================ */
+  const Melody=(()=>{
+    const NOTES=[
+      [261.63,'#e88f8f','♥'],[293.66,'#f0b27a','★'],[329.63,'#e9c25a','●'],[392.00,'#8fc46f','✿'],
+      [440.00,'#6fb7a8','◆'],[523.25,'#7fa8e0','☁'],[587.33,'#9b8fe0','☾'],[659.25,'#d88fc0','▲']
+    ];
+    const NAMES=['Heart','Star','Circle','Flower','Diamond','Cloud','Moon','Triangle'];
+    const tune=[];
+    const padsEl=$('#melodyPads'), tuneEl=$('#melodyTune');
+    let playTimer=null;
+    const pads=NOTES.map(([f,c,sym],i)=>{
+      const b=document.createElement('button');
+      b.className='pad'; b.style.setProperty('--pc',c);
+      b.setAttribute('aria-label', `${NAMES[i]} pad, note ${i+1}`);
+      b.innerHTML=`<span aria-hidden="true">${sym}</span><small aria-hidden="true">${i+1}</small>`;
+      b.addEventListener('click',()=>{ hit(i); record(i); });
+      padsEl.appendChild(b);
+      return b;
+    });
+    function hit(i){
+      tone(NOTES[i][0],{ dur:1.3, vol:.13 });
+      const p=pads[i];
+      p.classList.add('ring');
+      clearTimeout(p._t); p._t=setTimeout(()=>p.classList.remove('ring'),220);
+    }
+    function record(i){
+      tune.push(i); if(tune.length>24) tune.shift();
+      renderTune();
+    }
+    function renderTune(){
+      tuneEl.innerHTML = tune.length ? tune.map(i=>`<i style="background:${NOTES[i][1]}" title="${NAMES[i]}"></i>`).join('') : '<span class="empty">Tap a pad to start</span>';
+      tuneEl.setAttribute('aria-label', tune.length ? `Your tune has ${tune.length} notes` : 'Your tune is empty');
+      $('#melodyPlay').disabled=!tune.length; $('#melodyClear').disabled=!tune.length;
+    }
+    function stop(){ clearTimeout(playTimer); playTimer=null; $('#melodyPlay').textContent='▶ Play my tune'; }
+    function play(){
+      if(playTimer){ stop(); return; }
+      let n=0;
+      $('#melodyPlay').textContent='⏸ Stop';
+      const step=()=>{
+        if(n>=tune.length){ stop(); return; }
+        hit(tune[n++]);
+        playTimer=setTimeout(step,420);
+      };
+      step();
+    }
+    $('#melodyPlay').addEventListener('click', play);
+    $('#melodyClear').addEventListener('click', ()=>{ stop(); tune.length=0; renderTune(); pads[0].focus(); });
+    // Number keys 1–8 play pads while this activity is open.
+    document.addEventListener('keydown', e=>{
+      if(!activityOpen || currentId!=='melody' || !actDone.hidden) return;
+      const n=parseInt(e.key,10);
+      if(n>=1 && n<=8){ e.preventDefault(); hit(n-1); record(n-1); }
+    });
+    return { stop, onClose:stop };
+  })();
+
+  const ACTIVITIES={ draw:Draw, scene:Scene, story:Story, angel:Angel, melody:Melody };
+
+  applyControls();
+  layoutStations();
+  afterMove();
   requestAnimationFrame(tick);
 </script>
 </body>

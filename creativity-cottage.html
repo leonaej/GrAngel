@@ -234,7 +234,9 @@
   cottage.addEventListener('click', enterCottage);
   cottage.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') enterCottage(); });
 
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+  // Reduced motion is shared across pages ('grangelMotion' in localStorage); with no saved choice, follow the device.
+  let savedMotion=null; try{ savedMotion=localStorage.getItem('grangelMotion'); }catch(e){}
+  if(savedMotion ? savedMotion==='reduced' : window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
 
   /* ============================================================
      BRICK PATH — same construction as the village page: a solid

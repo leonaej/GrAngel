@@ -48,58 +48,32 @@
   .pond{ position:absolute; bottom:23%; left:6%; width:210px; height:92px; background:radial-gradient(ellipse at 40% 35%,var(--water) 0%,var(--water-dk) 100%); border-radius:50%; box-shadow:inset 0 4px 8px rgba(255,255,255,.35); overflow:hidden; }
   .pond .ripple{ position:absolute; inset:0; border-radius:50%; border:2px solid rgba(255,255,255,.5); animation:ripple 5s ease-out infinite; }
   @keyframes ripple{ 0%{ transform:scale(.4); opacity:.7; } 100%{ transform:scale(1); opacity:0; } }
-  .duck{ position:absolute; width:40px; bottom:26px; left:14px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.15)); animation:duckSwim 10s ease-in-out infinite; }
+  /* --swim (how far the duck paddles) is set by placePond() to fit the pond's width */
+  .duck{ position:absolute; width:40px; top:28%; left:14px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.15)); animation:duckSwim 10s ease-in-out infinite; }
   @keyframes duckSwim{
     0%{ transform:translateX(0) scaleX(1); }
-    45%{ transform:translateX(120px) scaleX(1); }
-    50%{ transform:translateX(120px) scaleX(-1); }
+    45%{ transform:translateX(var(--swim,120px)) scaleX(1); }
+    50%{ transform:translateX(var(--swim,120px)) scaleX(-1); }
     95%{ transform:translateX(0) scaleX(-1); }
     100%{ transform:translateX(0) scaleX(1); }
   }
 
-  /* Portals — 5 rustic, vine-covered stone-and-timber gateways centered in a row
-     along the bottom of the scene, each leading to one of Home's direct
-     connections on the map: a weathered brick plinth, a mossy wood frame with
-     obsidian corner blocks, a shimmering colored portal surface, thick vines
-     climbing both sides, and a small carved sign embedded into the lintel at
-     the top — echoing a Minecraft-style nether portal build, aged and overgrown.
-     Walking near one, or clicking it, travels there (once that place has a real
-     page — others show a friendly "coming soon" note instead). Fixed CSS
-     positions, so unlike the old road system there's nothing to recompute on
-     resize. */
-  .portal{ position:absolute; bottom:7%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; z-index:3; cursor:pointer; }
-  .portal .frame{ position:relative; width:78px; height:118px; background:
-      radial-gradient(circle at 22% 14%, rgba(127,176,106,.55) 0%, transparent 32%),
-      radial-gradient(circle at 78% 86%, rgba(106,154,88,.5) 0%, transparent 30%),
-      repeating-linear-gradient(90deg, var(--wood) 0 9px, #8a6640 9px 18px);
-    border-radius:4px; box-shadow:0 8px 16px rgba(0,0,0,.35), inset 0 0 0 4px #4a331e; transition:transform .2s ease; }
-  .portal:hover .frame, .portal.near .frame{ transform:scale(1.06); }
-  .portal .glow{ position:absolute; inset:9px; border-radius:2px; overflow:hidden; background:radial-gradient(circle at 50% 38%, #d9baf7 0%, var(--portal-color) 48%, #241035 100%); box-shadow:inset 0 0 20px rgba(0,0,0,.6), 0 0 18px 5px var(--portal-color); }
-  .portal .glow::after{ content:""; position:absolute; inset:0; background:repeating-linear-gradient(115deg, rgba(255,255,255,.22) 0 5px, transparent 5px 13px); background-size:200% 200%; animation:portalShimmer 3s linear infinite; mix-blend-mode:overlay; }
-  @keyframes portalShimmer{ from{ background-position:0 0; } to{ background-position:120px 60px; } }
-  .portal .obsidian{ position:absolute; width:15px; height:15px; background:#1c1024; border-radius:2px; box-shadow:inset 0 0 0 2px #33203f; z-index:1; }
-  .portal .obsidian.bl{ left:-4px; bottom:-4px; } .portal .obsidian.br{ right:-4px; bottom:-4px; }
+  /* Roads — 5 brick roads fanning out from a little round plaza at the cottage's
+     doorstep, each leading to one of Home's direct connections on the map. Drawn
+     into the #roads SVG by buildRoads() (same perspective brick construction as
+     Creativity Cottage's road), with flowers dotted along the edges and a wooden
+     signpost beside each one. Walking to a road's far end shows a "Go to…" button;
+     clicking a signpost goes there too. Rebuilt on resize. */
+  #roads{ position:absolute; inset:0; pointer-events:none; }
+  .roadsign{ position:absolute; width:10px; height:62px; transform:translate(-50%,-100%); z-index:3; cursor:pointer; transition:transform .2s ease; }
+  .roadsign:hover, .roadsign.near{ transform:translate(-50%,calc(-100% - 4px)); }
+  .roadsign .post{ position:absolute; bottom:0; left:0; width:10px; height:100%; background:#8a6640; border-radius:3px; box-shadow:0 3px 4px rgba(0,0,0,.2); }
+  .roadsign .plank{ position:absolute; top:0; left:50%; transform:translateX(-50%) rotate(-3deg); background:var(--wood); color:#fff8ec; font-weight:700; font-size:13px; padding:6px 11px; border-radius:5px; box-shadow:0 4px 8px rgba(0,0,0,.2); white-space:nowrap; display:flex; align-items:center; gap:5px; }
+  .roadsign:focus-visible{ outline:none; } .roadsign:focus-visible .plank{ outline:3px solid var(--heart); outline-offset:2px; }
 
-  /* Weathered brick plinth the frame stands on */
-  .portal .plinth{ width:88px; height:14px; margin-top:-3px; background:repeating-linear-gradient(90deg, #8a7568 0 13px, #6e5c50 13px 15px); border-radius:0 0 4px 4px; box-shadow:0 4px 8px rgba(0,0,0,.3); position:relative; z-index:0; }
-
-  /* Thick vines climbing both sides of the frame, draping over the top */
-  .portal .vine{ position:absolute; top:-10px; width:14px; height:132px; z-index:2; }
-  .portal .vine.vL{ left:-3px; } .portal .vine.vR{ right:-3px; }
-  .portal .vine::before{ content:""; position:absolute; inset:0; border-left:3px solid var(--leaf-dk); border-radius:8px 0 0 0; }
-  .portal .vine.vR::before{ border-left:none; border-right:3px solid var(--leaf-dk); border-radius:0 8px 0 0; }
-  .portal .vine .leaf{ position:absolute; width:11px; height:11px; border-radius:50% 50% 0 50%; background:var(--leaf); }
-  .portal .vine .leaf:nth-child(1){ top:6px; left:2px; transform:rotate(20deg); }
-  .portal .vine .leaf:nth-child(2){ top:34px; left:6px; transform:rotate(-15deg); background:var(--leaf-dk); }
-  .portal .vine .leaf:nth-child(3){ top:62px; left:2px; transform:rotate(12deg); }
-  .portal .vine .leaf:nth-child(4){ top:90px; left:6px; transform:rotate(-18deg); background:var(--leaf-dk); }
-  .portal .vine.vR .leaf{ left:auto; right:2px; }
-  .portal .vine.vR .leaf:nth-child(2), .portal .vine.vR .leaf:nth-child(4){ right:6px; }
-
-  /* Small carved sign embedded right into the top of the frame — ancient, not a floating pill */
-  .portal .sign{ position:absolute; top:6px; left:50%; transform:translateX(-50%); width:64px; background:linear-gradient(180deg,#c9a988 0%,#a8825f 100%); color:#3a2b1f; font-size:9.5px; font-weight:700; line-height:1.15; text-align:center; padding:4px 3px; border-radius:2px; box-shadow:0 0 0 1px #5e3d22, inset 0 1px 0 rgba(255,255,255,.25), 0 3px 5px rgba(0,0,0,.35); z-index:2; }
-  .portal .sign .ic{ display:block; font-size:12px; margin-bottom:1px; }
-  .portal:focus-visible .frame{ outline:3px solid var(--heart); outline-offset:3px; }
+  #roadPrompt{ position:absolute; transform:translate(-50%,-100%); background:var(--heart); color:#fff; border:none; font-weight:700; font-size:14.5px; padding:10px 18px; border-radius:999px; box-shadow:0 6px 14px rgba(0,0,0,.2); cursor:pointer; opacity:0; pointer-events:none; transition:opacity .2s ease; white-space:nowrap; z-index:12; }
+  #roadPrompt.show{ opacity:1; pointer-events:auto; }
+  #roadPrompt:focus-visible{ outline:3px solid var(--ink); outline-offset:2px; }
 
   #toast{ position:absolute; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--panel); color:var(--ink); padding:12px 20px; border-radius:16px; box-shadow:0 10px 24px rgba(0,0,0,.2); font-size:15px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .3s ease, transform .3s ease; z-index:30; text-align:center; }
   #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
@@ -200,6 +174,7 @@
     <div class="ground"></div>
     <div class="bush b1"></div><div class="bush b2"></div><div class="bush b3"></div>
     <div class="bush b4"></div><div class="bush b5"></div><div class="bush b6"></div>
+    <svg id="roads"></svg>
     <div class="pond">
       <span class="ripple"></span>
       <svg class="duck" viewBox="0 0 64 50" xmlns="http://www.w3.org/2000/svg">
@@ -237,6 +212,7 @@
 
     <div id="player-shadow"></div>
     <img id="player" alt="Your character" />
+    <button id="roadPrompt"></button>
     <div id="toast"></div>
 
     <div id="topbar">
@@ -272,73 +248,266 @@
     "Take your time. There's no rush here.",
     "Every path here leads somewhere kind."
   ];
-  let i=0, soundOn=true;
+  // Sound + reduced motion are shared with the other pages through localStorage
+  // ('grangelSound' / 'grangelMotion'); with no saved choice, motion follows the device setting.
+  const store={
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+  };
+  let i=0, soundOn=store.get('grangelSound')!=='off';
   function spawnHeart(x,y){ const h=document.createElement('div'); h.className='heart'; h.style.left=x+'px'; h.style.top=y+'px'; h.style.animation='floatup 2.2s ease-out forwards'; stage.appendChild(h); setTimeout(()=>h.remove(),2300); }
   function chime(){ if(!soundOn) return; try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); [523.25,659.25].forEach((f,idx)=>{ const o=ctx.createOscillator(),g=ctx.createGain(); o.type='sine'; o.frequency.value=f; o.connect(g); g.connect(ctx.destination); const t=ctx.currentTime+idx*0.12; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.15,t+0.03); g.gain.exponentialRampToValueAtTime(0.001,t+0.4); o.start(t); o.stop(t+0.42); }); }catch(e){} }
   function greet(){ i=(i+1)%lines.length; bubble.textContent=lines[i]; bubble.classList.add('show'); chime(); const r=grangel.getBoundingClientRect(); spawnHeart(r.left+r.width/2, r.top+10); clearTimeout(greet._t); greet._t=setTimeout(()=>bubble.classList.remove('show'),3200); }
   grangel.addEventListener('click',greet);
   grangel.setAttribute('tabindex','0');
   grangel.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') greet(); });
-  document.getElementById('btnSound').addEventListener('click',function(){ soundOn=!soundOn; this.textContent=soundOn?'🔊':'🔇'; });
-  document.getElementById('btnMotion').addEventListener('click',function(){ document.body.classList.toggle('reduced'); this.textContent=document.body.classList.contains('reduced')?'🍃':'🌿'; });
-  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+  const btnSound=document.getElementById('btnSound'), btnMotion=document.getElementById('btnMotion');
+  const savedMotion=store.get('grangelMotion');
+  if(savedMotion ? savedMotion==='reduced' : window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
+  function showControls(){
+    btnSound.textContent=soundOn?'🔊':'🔇'; btnSound.setAttribute('aria-pressed', String(soundOn));
+    const r=document.body.classList.contains('reduced');
+    btnMotion.textContent=r?'🍃':'🌿'; btnMotion.setAttribute('aria-pressed', String(r));
+  }
+  btnSound.addEventListener('click',()=>{ soundOn=!soundOn; store.set('grangelSound', soundOn?'on':'off'); showControls(); });
+  btnMotion.addEventListener('click',()=>{ const r=document.body.classList.toggle('reduced'); store.set('grangelMotion', r?'reduced':'full'); showControls(); });
+  showControls();
 
   /* ============================================================
-     PORTALS — 5 wood-framed nether-style gateways in a row along the
-     bottom of the scene (2nd from the left is Creativity Cottage),
-     matching Home's 5 direct connections on the map. Fixed CSS
-     positions (left% + bottom%), so nothing to recompute on resize.
-     Click one (or press Enter while it's focused) to travel there.
+     ROADS — 5 brick roads fanning out from the cottage doorstep,
+     matching Home's 5 direct connections on the map. Each road's
+     end is given as a fraction of the screen (off-screen past an
+     edge), so the layout scales with the window; rebuilt on resize.
      ============================================================ */
-  const PORTALS=[
-    { id:'feelwell',   icon:'🌸', name:'FeelWell Garden',        x:10 },
-    { id:'creativity', icon:'🎨', name:'Creativity Cottage',      x:30, page:'creativity-cottage.html' },
-    { id:'writing',    icon:'✏️', name:'The Writing Studio',      x:50 },
-    { id:'superpower', icon:'⚡', name:'Superpower Zone',         x:70 },
-    { id:'courtyard',  icon:'🏡', name:"Grandparents' Courtyard", x:90 },
+  const ROADS=[
+    { id:'feelwell',   icon:'🌸', name:'FeelWell Garden',         end:{ x:-0.05, y:0.63 }, bow: 0.5 },
+    { id:'creativity', icon:'🎨', name:'Creativity Cottage',      end:{ x:0.14,  y:1.06 }, bow: 1, page:'creativity-cottage.html', sign:'inner' },
+    { id:'writing',    icon:'✏️', name:'The Writing Studio',      end:{ x:0.50,  y:1.06 }, bow: 0.4, sign:'right' },
+    { id:'superpower', icon:'⚡', name:'Superpower Zone',         end:{ x:0.86,  y:1.06 }, bow:-1   },
+    { id:'courtyard',  icon:'🏡', name:"Grandparents' Courtyard", end:{ x:1.05,  y:0.63 }, bow:-0.5 },
   ];
-  const PORTAL_COLORS={
-    feelwell:'#d98fe0', creativity:'#a86ee0', writing:'#8f6fe6', superpower:'#7e5be0', courtyard:'#9a6ee6'
-  };
   const toast=document.getElementById('toast');
-  function enterPortal(p){
-    if(p.page){ window.location.href=p.page; return; }
-    toast.textContent=`${p.name} is coming soon 💛`;
+  function travel(r){
+    if(r.page){ window.location.href=r.page; return; }
+    toast.textContent=`${r.name} is coming soon 💛`;
     toast.classList.add('show');
-    clearTimeout(enterPortal._t);
-    enterPortal._t=setTimeout(()=>toast.classList.remove('show'),2400);
+    clearTimeout(travel._t);
+    travel._t=setTimeout(()=>toast.classList.remove('show'),2400);
   }
-  const portalEls=[];
-  PORTALS.forEach(p=>{
+
+  const SVGNS='http://www.w3.org/2000/svg';
+  const roadsSvg=document.getElementById('roads');
+  const MORTAR='#dcc39c', CURB='#b39a72';
+  const BRICK_TONES=['#c98d84','#b97a68','#c0806f'];
+  const EDGE_BLOOMS=['#d98fb0','#b79ad6','#e7c877','#fff4f8'];
+
+  function depthScale(y, h){
+    const horizon=h*0.46, near=h*1.0;
+    const t=Math.max(0, Math.min(1, (y-horizon)/(near-horizon)));
+    return 0.42 + 0.58*t;
+  }
+  function quadPoint(p0,p1,p2,t){ const it=1-t; return { x: it*it*p0.x+2*it*t*p1.x+t*t*p2.x, y: it*it*p0.y+2*it*t*p1.y+t*t*p2.y }; }
+  function quadTangent(p0,p1,p2,t){
+    const it=1-t;
+    const dx=2*it*(p1.x-p0.x)+2*t*(p2.x-p1.x);
+    const dy=2*it*(p1.y-p0.y)+2*t*(p2.y-p1.y);
+    const len=Math.hypot(dx,dy)||1;
+    return { x:dx/len, y:dy/len };
+  }
+  function svgEl(tag, attrs){ const el=document.createElementNS(SVGNS,tag); for(const k in attrs) el.setAttribute(k,attrs[k]); return el; }
+
+  // One road: mortar ribbon + running-bond bricks (clipped to the ribbon), a soft
+  // curb outline, and little flowers along both edges. Returns its samples so the
+  // signpost and the end-of-road prompt can be placed along it.
+  function buildRoad(start, end, bowSign, h, idx){
+    const dx=end.x-start.x, dy=end.y-start.y;
+    const dist=Math.hypot(dx,dy);
+    const nx=-dy/dist, ny=dx/dist;
+    const amp=dist*0.10*bowSign;
+    const ctrl={ x:(start.x+end.x)/2+nx*amp, y:(start.y+end.y)/2+ny*amp };
+
+    const ROAD_W_BASE=80;
+    const SAMPLES=Math.max(30, Math.round(dist/12));
+    const centre=[], tangent=[], scale=[];
+    for(let i=0;i<=SAMPLES;i++){
+      const t=i/SAMPLES;
+      const c=quadPoint(start,ctrl,end,t);
+      centre.push(c); tangent.push(quadTangent(start,ctrl,end,t)); scale.push(depthScale(c.y,h));
+    }
+    const arc=[0];
+    for(let i=1;i<centre.length;i++) arc.push(arc[i-1]+Math.hypot(centre[i].x-centre[i-1].x, centre[i].y-centre[i-1].y));
+    const totalLen=arc[arc.length-1];
+    const at=s=>{ let i=0; while(i<arc.length-1 && arc[i]<s) i++; return i; };
+
+    const left=[], right=[];
+    centre.forEach((c,i)=>{
+      const tg=tangent[i], half=(ROAD_W_BASE*scale[i])/2;
+      left.push({ x:c.x-tg.y*half, y:c.y+tg.x*half });
+      right.push({ x:c.x+tg.y*half, y:c.y-tg.x*half });
+    });
+    let d=`M ${left[0].x},${left[0].y} `;
+    left.slice(1).forEach(p=>d+=`L ${p.x},${p.y} `);
+    right.slice().reverse().forEach(p=>d+=`L ${p.x},${p.y} `);
+    d+='Z';
+
+    const clipId=`road-clip-${idx}`;
+    const clip=svgEl('clipPath',{ id:clipId });
+    clip.appendChild(svgEl('path',{ d }));
+    roadsSvg.appendChild(clip);
+
+    const group=svgEl('g',{ 'clip-path':`url(#${clipId})` });
+    group.appendChild(svgEl('path',{ d, fill:MORTAR }));
+    const BRICK_LEN_BASE=42, GAP=4, laneCount=2;
+    let rowIndex=0, coveredLen=0, tone=idx;
+    while(coveredLen < totalLen+BRICK_LEN_BASE){
+      const stagger=(rowIndex%2===0)?0:BRICK_LEN_BASE/2;
+      const i=at(Math.max(0, Math.min(totalLen, coveredLen+BRICK_LEN_BASE/2-stagger)));
+      const c=centre[i], tg=tangent[i], sc=scale[i];
+      const angle=Math.atan2(tg.y,tg.x)*180/Math.PI;
+      const roadW=ROAD_W_BASE*sc, half=roadW/2;
+      const laneW=(roadW-GAP*(laneCount+1))/laneCount;
+      const brickLen=BRICK_LEN_BASE*sc;
+      for(let lane=0; lane<laneCount; lane++){
+        const off=-half+GAP+laneW/2+lane*(laneW+GAP);
+        group.appendChild(svgEl('rect',{
+          x:-(brickLen-GAP)/2, y:-(laneW-GAP)/2,
+          width:Math.max(2,brickLen-GAP), height:Math.max(2,laneW-GAP), rx:3,
+          fill:BRICK_TONES[tone%BRICK_TONES.length], stroke:'rgba(90,58,40,.25)', 'stroke-width':1,
+          transform:`translate(${c.x-tg.y*off},${c.y+tg.x*off}) rotate(${angle})`
+        }));
+        tone++;
+      }
+      coveredLen += BRICK_LEN_BASE;
+      rowIndex++;
+    }
+    roadsSvg.appendChild(group);
+    roadsSvg.appendChild(svgEl('path',{ d, fill:'none', stroke:CURB, 'stroke-width':2.5, 'stroke-linejoin':'round', opacity:.8 }));
+
+    // Flowers along both edges, starting clear of the plaza so they never sit on a neighbour road.
+    let side=1, k=idx;
+    for(let s=120; s<totalLen-10; s+=26){
+      const i=at(s), c=centre[i], tg=tangent[i], sc=scale[i];
+      const off=side*((ROAD_W_BASE*sc)/2 + 9*sc);
+      const fx=c.x-tg.y*off, fy=c.y+tg.x*off;
+      roadsSvg.appendChild(svgEl('ellipse',{ cx:fx-3*sc, cy:fy+4*sc, rx:5*sc, ry:2.4*sc, fill:'#6a9a58', transform:`rotate(-25 ${fx-3*sc} ${fy+4*sc})` }));
+      roadsSvg.appendChild(svgEl('ellipse',{ cx:fx+3*sc, cy:fy+4*sc, rx:5*sc, ry:2.4*sc, fill:'#5f8f52', transform:`rotate(25 ${fx+3*sc} ${fy+4*sc})` }));
+      roadsSvg.appendChild(svgEl('circle',{ cx:fx, cy:fy, r:5.5*sc, fill:EDGE_BLOOMS[k%EDGE_BLOOMS.length], stroke:'rgba(90,58,40,.15)', 'stroke-width':1 }));
+      roadsSvg.appendChild(svgEl('circle',{ cx:fx, cy:fy, r:2*sc, fill:'#f6c94c' }));
+      side=-side; k++;
+    }
+    return { centre, tangent, scale, arc, totalLen, at };
+  }
+
+  // Signposts are created once; buildRoads() only moves them.
+  const roadEls=ROADS.map(r=>{
     const el=document.createElement('div');
-    el.className='portal';
-    el.style.left=p.x+'%';
-    el.style.setProperty('--portal-color', PORTAL_COLORS[p.id]);
+    el.className='roadsign';
     el.setAttribute('role','button');
     el.setAttribute('tabindex','0');
-    el.setAttribute('aria-label', p.name);
-    el.innerHTML=`
-      <div class="frame">
-        <div class="glow"></div>
-        <div class="sign"><span class="ic">${p.icon}</span>${p.name}</div>
-        <div class="vine vL"><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span></div>
-        <div class="vine vR"><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span><span class="leaf"></span></div>
-        <div class="obsidian bl"></div>
-        <div class="obsidian br"></div>
-      </div>
-      <div class="plinth"></div>`;
-    el.addEventListener('click', ()=>enterPortal(p));
-    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') enterPortal(p); });
+    el.setAttribute('aria-label', `Go to ${r.name}`);
+    el.innerHTML=`<div class="post"></div><div class="plank">${r.icon} ${r.name}</div>`;
+    el.addEventListener('click', ()=>travel(r));
+    el.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' ') travel(r); });
     stage.appendChild(el);
-    portalEls.push({ ...p, el });
+    return { ...r, el, exit:null };
   });
-  function updatePortalProximity(){
-    portalEls.forEach(p=>{
-      const r=p.el.getBoundingClientRect();
-      const cx=r.left+r.width/2, cy=r.top+r.height/2;
-      p.el.classList.toggle('near', Math.hypot(px.x-cx, px.y-cy)<130);
+
+  function buildRoads(){
+    const w=stage.clientWidth, h=stage.clientHeight;
+    roadsSvg.setAttribute('width', w);
+    roadsSvg.setAttribute('height', h);
+    roadsSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    roadsSvg.innerHTML='';
+    const door={ x:w*0.5, y:h*0.70 }; // the cottage sits at bottom:30%, so its door meets the grass here
+    roadEls.forEach((r,idx)=>{
+      const road=buildRoad(door, { x:r.end.x*w, y:r.end.y*h }, r.bow, h, idx);
+
+      // Signpost beside the road, a bit past halfway: on the upper side of a
+      // sideways road; beside a road heading down the screen, on the outer side
+      // unless the road says otherwise ('inner' keeps it off the pond).
+      const i=road.at(road.totalLen*0.55), c=road.centre[i], tg=road.tangent[i];
+      let sx=-tg.y, sy=tg.x; // unit normal
+      const downward=Math.abs(tg.y)>0.7 || !!r.sign;
+      if(downward){
+        const want = r.sign==='right' ? 1 : r.sign==='inner' ? Math.sign(door.x-c.x) : Math.sign(c.x-door.x);
+        if(sx*want<0){ sx=-sx; sy=-sy; }
+      }
+      else if(sy>0){ sx=-sx; sy=-sy; }
+      // A road heading down the screen gets its sign well off to the side, so the plank clears the bricks.
+      const off=(80*road.scale[i])/2+(downward ? 24+r.name.length*3.6 : 14);
+      r.el.style.left=Math.min(w-90, Math.max(90, c.x+sx*off))+'px';
+      r.el.style.top=Math.min(h-12, c.y+sy*off+(downward ? 40 : 0))+'px';
+
+      r.road=road;
+
+      // Exit point: the last spot on the road the player can actually reach.
+      const b=groundBounds();
+      for(let j=road.centre.length-1; j>=0; j--){
+        const p=road.centre[j];
+        if(p.x>=b.minX+10 && p.x<=b.maxX-10 && p.y>=b.minY && p.y<=b.maxY-10){ r.exit=p; break; }
+      }
     });
+
+    // A little round plaza at the doorstep, laid over the five road ends so they join neatly.
+    const sc=depthScale(door.y,h);
+    roadsSvg.appendChild(svgEl('ellipse',{ cx:door.x, cy:door.y+6, rx:96*sc+6, ry:34*sc+4, fill:MORTAR, stroke:CURB, 'stroke-width':2.5 }));
+    roadsSvg.appendChild(svgEl('ellipse',{ cx:door.x, cy:door.y+6, rx:70*sc, ry:24*sc, fill:'none', stroke:BRICK_TONES[0], 'stroke-width':10*sc, 'stroke-dasharray':`${16*sc} ${4*sc}` }));
+    roadsSvg.appendChild(svgEl('ellipse',{ cx:door.x, cy:door.y+6, rx:38*sc, ry:13*sc, fill:BRICK_TONES[1], opacity:.85 }));
+
+    placePond(w, h);
   }
+
+  // The pond sits in the open grass left of the Creativity road (and below the FeelWell
+  // road), sized to fit that gap so it never ends up on a road at any window size.
+  const pond=document.querySelector('.pond');
+  function placePond(w, h){
+    const road=roadEls.find(r=>r.id==='creativity').road;
+    const cy=h*0.80;
+    let i=0;
+    road.centre.forEach((c,j)=>{ if(Math.abs(c.y-cy)<Math.abs(road.centre[i].y-cy)) i=j; });
+    const roadLeft=road.centre[i].x-(80*road.scale[i])/2-24; // road edge, minus room for its flowers
+    const pw=Math.max(90, Math.min(210, roadLeft-28));
+    const ph=pw*0.44;
+    pond.style.width=pw+'px'; pond.style.height=ph+'px';
+    pond.style.left=Math.max(12, (roadLeft-pw)/2)+'px';
+    pond.style.top=(cy-ph/2)+'px'; pond.style.bottom='auto';
+    pond.style.setProperty('--swim', Math.max(20, pw-80)+'px');
+    // its little flower patch grows just below the water's edge
+    const fl=document.querySelector('.flowers.fl3');
+    fl.style.left=(parseFloat(pond.style.left)+pw*0.55)+'px';
+    fl.style.top=(cy+ph/2+4)+'px'; fl.style.bottom='auto';
+  }
+
+  // Walking to a road's far end shows a "Go to…" button above the player.
+  const roadPrompt=document.getElementById('roadPrompt');
+  let promptRoad=null;
+  function updateRoadPrompt(){
+    promptRoad=null;
+    let best=110;
+    roadEls.forEach(r=>{
+      const d=r.exit ? Math.hypot(px.x-r.exit.x, px.y-r.exit.y) : Infinity;
+      r.el.classList.toggle('near', d<110);
+      if(d<best){ best=d; promptRoad=r; }
+    });
+    if(promptRoad){
+      roadPrompt.textContent=`${promptRoad.icon} Go to ${promptRoad.name} →`;
+      roadPrompt.style.left=Math.min(window.innerWidth-150, Math.max(150, px.x))+'px';
+      roadPrompt.style.top=Math.max(60, px.y-56)+'px';
+      roadPrompt.classList.add('show');
+    } else {
+      roadPrompt.classList.remove('show');
+    }
+  }
+  roadPrompt.addEventListener('click', ()=>{ if(promptRoad) travel(promptRoad); });
+  window.addEventListener('keydown', e=>{ if(e.key==='Enter' && promptRoad && document.activeElement===document.body) travel(promptRoad); });
+
+  buildRoads();
+  // Watch the stage itself (not just window resize) so the roads always match the scene's real size.
+  let roadsResizeTimer;
+  new ResizeObserver(()=>{
+    clearTimeout(roadsResizeTimer);
+    roadsResizeTimer=setTimeout(()=>{ buildRoads(); updateRoadPrompt(); },150);
+  }).observe(stage);
 
   /* ============================================================
      PLAYABLE CHARACTER — pick boy/girl in the sidebar, then walk
@@ -406,7 +575,7 @@
   }
   captureGrangelHome();
 
-  updatePortalProximity();
+  updateRoadPrompt();
 
   const SPEED=4;
   function tick(){
@@ -422,7 +591,7 @@
         px.x=Math.min(b.maxX,Math.max(b.minX, px.x+(dx/len)*SPEED));
         px.y=Math.min(b.maxY,Math.max(b.minY, px.y+(dy/len)*SPEED));
         placePlayer();
-        updatePortalProximity();
+        updateRoadPrompt();
         updateGrangelPosition();
       }
     }
