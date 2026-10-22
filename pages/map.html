@@ -66,7 +66,7 @@
 
     <div id="mapTitle">GrAngel World<small>One connected village — tap a place to visit</small></div>
     <!-- link back to the village page -->
-    <a href="index.html" id="backBtn">← Back to Village</a>
+    <a href="home.html" id="backBtn">← Back to Village</a>
 
     <div id="markers"></div>
 
@@ -121,7 +121,7 @@
     const badge = loc.id==='home' ? '<span class="here-badge">📍 You are here</span>' : '';
     el.innerHTML=`${badge}<span class="pin">${loc.icon}</span><span class="lbl">${loc.name}</span>`;
     el.addEventListener('click',()=>{
-      if(loc.id==='home'){ window.location.href='index.html'; }
+      if(loc.id==='home'){ window.location.href='home.html'; }
       else if(loc.page){ window.location.href=loc.page; }
       else { openLocCard(loc); }
     });
@@ -178,7 +178,7 @@
 
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ document.body.classList.add('reduced'); }
   // Esc goes back to the village
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ window.location.href='index.html'; } });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ window.location.href='home.html'; } });
 </script>
 </body>
 </html>

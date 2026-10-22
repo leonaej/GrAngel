@@ -206,7 +206,7 @@
 
     <div id="grangelGroup">
       <div id="grangel-shadow"></div>
-      <img id="grangel" src="gram_grangel.png" alt="GrAngel, a friendly waving heart" />
+      <img id="grangel" src="../assets/images/gram_grangel.png" alt="GrAngel, a friendly waving heart" />
       <div id="bubble">Ooh, I love it here! 🎨</div>
     </div>
 
@@ -215,7 +215,7 @@
 
     <button id="roadPrompt">🏠 Back to Village →</button>
 
-    <a href="index.html" id="backBtn">← Back to Village</a>
+    <a href="home.html" id="backBtn">← Back to Village</a>
   </div>
 
 <script>
@@ -376,7 +376,7 @@
      page carries over here (read from localStorage); W A S D moves.
      Spawns on the right side of the brick path, as if just arriving.
      ============================================================ */
-  const CHAR_SRC={ boy:'boy.png', girl:'girl.png' };
+  const CHAR_SRC={ boy:'../assets/images/boy.png', girl:'../assets/images/girl.png' };
   const player=document.getElementById('player');
   const playerShadow=document.getElementById('player-shadow');
 
@@ -457,7 +457,7 @@
       roadPrompt.classList.remove('show');
     }
   }
-  roadPrompt.addEventListener('click', ()=>{ window.location.href='index.html'; });
+  roadPrompt.addEventListener('click', ()=>{ window.location.href='home.html'; });
   updateRoadPrompt();
 
   function tick(){

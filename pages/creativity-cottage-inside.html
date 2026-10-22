@@ -418,7 +418,7 @@
 
       <div id="grangelGroup">
         <div id="grangel-shadow"></div>
-        <img id="grangel" src="gram_grangel.png" alt="Auzzie the GrAngel, your host" />
+        <img id="grangel" src="../assets/images/gram_grangel.png" alt="Auzzie the GrAngel, your host" />
         <div id="bubble">Hi, I'm Auzzie! Welcome to Creativity Cottage. 🎨</div>
       </div>
 
@@ -441,7 +441,7 @@
         <div class="act-head">
           <button id="actBack">← Back to the room</button>
           <h2 id="actTitle">Station</h2>
-          <div class="act-host"><img src="gram_grangel.png" alt="" /><p id="actHostSays"></p></div>
+          <div class="act-host"><img src="../assets/images/gram_grangel.png" alt="" /><p id="actHostSays"></p></div>
         </div>
 
         <!-- Color & Create -->
@@ -652,7 +652,7 @@
      phones and tablets. With reduced motion, a tap fades the
      character to the spot instead of walking.
      ============================================================ */
-  const CHAR_SRC={ boy:'boy.png', girl:'girl.png' };
+  const CHAR_SRC={ boy:'../assets/images/boy.png', girl:'../assets/images/girl.png' };
   const player=$('#player'), playerShadow=$('#player-shadow');
 
   const px={ x: Math.round(window.innerWidth*0.5), y: Math.round(window.innerHeight*0.72) }; // just inside the door, clear of every station
@@ -1022,7 +1022,7 @@
       sun:     { label:'Sun',           w:10, h:10, html:'<span class="pc pc-sun"></span>' },
       cloud:   { label:'Cloud',         w:14, h:5,  html:'<span class="pc pc-cloud"></span>' },
       rainbow: { label:'Rainbow',       w:18, h:9,  html:'<span class="pc pc-rainbow"></span>' },
-      grangel: { label:'GrAngel',       w:12, h:16, html:'<span class="pc pc-grangel"><i></i><img src="gram_grangel.png" alt="" /></span>' },
+      grangel: { label:'GrAngel',       w:12, h:16, html:'<span class="pc pc-grangel"><i></i><img src="../assets/images/gram_grangel.png" alt="" /></span>' },
     };
     const DEFAULT_SPOT={ sun:[16,20], cloud:[60,16], rainbow:[78,30], grangel:[50,38] };
     let selected=null, zTop=1, addCount=0;
